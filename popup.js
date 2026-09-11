@@ -91,13 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
     model: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.model : "gemini-3.8-flash-low",
     apiKey: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiKey : "",
     batchSize: 20,
-    sourceLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "zh") : "zh",
+    sourceLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "auto") : "auto",
     targetLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.targetLang || "ru") : "ru"
   };
 
   function updateBadge(src, tgt) {
     if (langPairBadge) {
-      langPairBadge.textContent = `${(src || "zh").toUpperCase()} → ${(tgt || "ru").toUpperCase()}`;
+      langPairBadge.textContent = `${(src || "auto").toUpperCase()} → ${(tgt || "ru").toUpperCase()}`;
     }
   }
 

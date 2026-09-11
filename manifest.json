@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Local AI ZH-RU Web Translator",
+  "name": "AI Translator",
   "version": "1.0.0",
-  "description": "In-place Chinese to Russian web page translation using local AI (Ollama / LM Studio) with 100% DOM structure preservation.",
+  "description": "In-place web page translation using AI with 100% DOM structure preservation.",
   "permissions": [
     "storage",
     "activeTab"
@@ -15,7 +15,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Local AI Translator"
+    "default_title": "AI Translator"
   },
   "content_scripts": [
     {

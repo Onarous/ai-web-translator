@@ -7,7 +7,7 @@ try {
 const DEFAULT_API_URL = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiUrl : "http://localhost:8045/v1/chat/completions";
 const DEFAULT_MODEL = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.model : "gemini-3.8-flash-low";
 const DEFAULT_API_KEY = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiKey : "";
-const DEFAULT_SOURCE_LANG = typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "zh") : "zh";
+const DEFAULT_SOURCE_LANG = typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "auto") : "auto";
 const DEFAULT_TARGET_LANG = typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.targetLang || "ru") : "ru";
 const LOGGER_ENDPOINT = "http://127.0.0.1:8046/log";
 

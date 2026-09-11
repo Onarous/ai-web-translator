@@ -21,7 +21,7 @@
     const trimmed = text.trim();
     if (!trimmed) return false;
 
-    const sourceLang = (cachedSettings && cachedSettings.sourceLang) || "zh";
+    const sourceLang = (cachedSettings && cachedSettings.sourceLang) || "auto";
     const targetLang = (cachedSettings && cachedSettings.targetLang) || "ru";
 
     if (sourceLang === "auto") {
@@ -635,7 +635,7 @@
           model: "gemini-3.8-flash-low",
           apiKey: "",
           batchSize: 20,
-          sourceLang: "zh",
+          sourceLang: "auto",
           targetLang: "ru"
         },
         (res) => {
@@ -1088,7 +1088,7 @@
   let widgetContainer = null;
 
   function getPairLabel() {
-    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
     return `${src} → ${tgt}`;
   }
@@ -1104,8 +1104,9 @@
     widgetContainer.style.right = "16px";
     widgetContainer.style.zIndex = "2147483647";
 
-    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
+    const origLabel = src === "AUTO" ? "Оригинал" : `Оригинал (${src})`;
     shadowRoot = widgetContainer.attachShadow({ mode: "closed" });
     shadowRoot.innerHTML = `
       <style>
@@ -1224,7 +1225,7 @@
       <div id="badgeContainer" class="badge-container active">
         <div id="actionBtn" class="badge-main" title="Вернуть оригинальный текст страницы">
           <span id="dot" class="dot"></span>
-          <span id="label">Оригинал (${src})</span>
+          <span id="label">${origLabel}</span>
         </div>
         <div id="refreshDivider" class="badge-divider"></div>
         <div id="refreshBtn" class="badge-refresh" title="Обновить перевод страницы">
@@ -1275,8 +1276,9 @@
     badgeContainer.className = "badge-container";
     if (refreshBtn) refreshBtn.classList.remove("spinning");
     if (dot) dot.className = "dot";
-    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
+    const origLabel = src === "AUTO" ? "Оригинал" : `Оригинал (${src})`;
 
     if (state === "translating") {
       badgeContainer.classList.add("busy");
@@ -1290,7 +1292,7 @@
       badgeContainer.classList.add("active");
       if (refreshBtn) refreshBtn.style.display = "inline-flex";
       if (refreshDivider) refreshDivider.style.display = "block";
-      label.textContent = `Оригинал (${src})`;
+      label.textContent = origLabel;
       if (actionBtn) actionBtn.title = "Вернуть оригинальный текст страницы";
     } else if (state === "refreshed") {
       badgeContainer.classList.add("active");
@@ -1299,7 +1301,7 @@
       label.textContent = "✓ Обновлено";
       setTimeout(() => {
         if (label && isTranslated) {
-          label.textContent = `Оригинал (${src})`;
+          label.textContent = origLabel;
         }
       }, 1500);
     } else if (state === "idle" || !isTranslated) {
@@ -1314,7 +1316,7 @@
       setTimeout(() => {
         if (label) {
           if (isTranslated) {
-            label.textContent = `Оригинал (${src})`;
+            label.textContent = origLabel;
           } else {
             label.textContent = `Перевести (${tgt})`;
           }
@@ -1327,7 +1329,7 @@
       setTimeout(() => {
         if (isTranslated) {
           badgeContainer.className = "badge-container active";
-          label.textContent = `Оригинал (${src})`;
+          label.textContent = origLabel;
         } else {
           badgeContainer.className = "badge-container idle";
           if (dot) dot.classList.add("idle");
@@ -1337,7 +1339,7 @@
     } else {
       if (isTranslated) {
         badgeContainer.classList.add("active");
-        label.textContent = `Оригинал (${src})`;
+        label.textContent = origLabel;
       } else {
         badgeContainer.classList.add("idle");
         if (dot) dot.classList.add("idle");

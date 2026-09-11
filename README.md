@@ -1,21 +1,21 @@
-# Local AI Web Translator | Chinese to Russian (ZH → RU)
+# AI Translator | Universal Web Translator
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Local AI](https://img.shields.io/badge/AI_Backend-Ollama_%7C_LM_Studio_%7C_vLLM-blueviolet)](https://github.com/XFN52/local-ai-web-translator)
+[![AI Providers](https://img.shields.io/badge/AI_Providers-OpenAI_%7C_Gemini_%7C_Claude_%7C_DeepSeek_%7C_Groq_%7C_Ollama-blueviolet)](https://github.com/XFN52/local-ai-web-translator)
 [![OpenAI Compatible](https://img.shields.io/badge/API-OpenAI_Compatible_v1-orange)](https://github.com/XFN52/local-ai-web-translator)
 [![Tests Passing](https://img.shields.io/badge/Tests-100%25_Passed-brightgreen)](test_dom_translation.js)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/XFN52/local-ai-web-translator/pulls)
 
-> **High-performance, 100% DOM-safe browser extension** for seamless Chinese-to-Russian web translation powered by local Large Language Models (LLMs). Built specifically for modern dynamic SPAs, React/Vue applications, and complex enterprise UI frameworks (Semi UI, Ant Design, Element Plus).
+> **High-performance, 100% DOM-safe browser extension** for seamless web translation powered by cloud & local Large Language Models (LLMs). Built specifically for modern dynamic SPAs, React/Vue applications, and complex enterprise UI frameworks.
 
 ---
 
 ## 🔍 Overview / Краткий обзор
 
-**Local AI Web Translator** solves the primary flaw of traditional web translators: broken layouts, corrupted React component state, detached event handlers, and frozen dropdowns. By operating strictly on `TextNode.nodeValue` and live DOM attributes, it translates web pages natively without re-rendering or modifying the underlying DOM hierarchy.
+**AI Translator** solves the primary flaw of traditional web translators: broken layouts, corrupted React component state, detached event handlers, and frozen dropdowns. By operating strictly on `TextNode.nodeValue` and live DOM attributes, it translates web pages natively without re-rendering or modifying the underlying DOM hierarchy.
 
-- **English**: Lightweight Chrome Extension (Manifest V3) for Chinese to Russian web translation using local LLMs (Ollama, LM Studio, vLLM).
+- **English**: Lightweight Chrome Extension (Manifest V3) for universal web translation using cloud & local LLMs (OpenAI, Gemini, Claude, DeepSeek, Groq, Ollama, LM Studio).
 - **Русский**: Браузерное расширение (Manifest V3) для точного перевода веб-интерфейсов с китайского на русский язык через локальные нейросети.
 - **中文**: 基于本地大语言模型 (Ollama / vLLM / LM Studio) 的 Chrome 扩展 (Manifest V3)，实现中文到俄语的高保真无损网页翻译，专为 React / Vue SPA 设计。
 
