@@ -677,8 +677,6 @@
         }
       }
 
-      const settings = await getSettings();
-
       if (visible.length > 0) {
         sendLog("DEBUG", "TAB_RESCAN", `Tab switch / revalidation: translating ${visible.length} visible items`);
         await translateItemsList(visible, settings);
