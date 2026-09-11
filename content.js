@@ -930,7 +930,12 @@
     try {
       sessionStorage.setItem("local_ai_translator_active", "false");
     } catch (e) {}
-    removeFloatingWidget();
+    updateWidgetUI("idle");
+    sendRuntimeMessage({
+      action: "TRANSLATION_STATE",
+      isTranslated: false,
+      isTranslating: false
+    });
     sendLog("INFO", "DOM_RESTORE", `Restored ${restoredCount} items (text nodes & attributes) to original`, { restoredCount });
     return restoredCount;
   }
@@ -1100,6 +1105,7 @@
     widgetContainer.style.zIndex = "2147483647";
 
     const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
     shadowRoot = widgetContainer.attachShadow({ mode: "closed" });
     shadowRoot.innerHTML = `
       <style>
@@ -1128,6 +1134,9 @@
         }
         .badge-container.active {
           border-color: #38bdf8;
+        }
+        .badge-container.idle {
+          border-color: rgba(255,255,255,0.18);
         }
         .badge-container.error {
           border-color: #f87171;
@@ -1165,6 +1174,22 @@
           background: rgba(56, 189, 248, 0.18);
           color: #7dd3fc;
         }
+        .badge-close {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 7px 9px;
+          cursor: pointer;
+          background: transparent;
+          font-size: 12px;
+          line-height: 1;
+          color: rgba(255,255,255,0.4);
+          transition: all 0.15s ease;
+        }
+        .badge-close:hover {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+        }
         .refresh-icon {
           display: inline-block;
           transition: transform 0.25s ease;
@@ -1182,6 +1207,10 @@
           border-radius: 50%;
           background: #10b981;
           flex-shrink: 0;
+          transition: background 0.2s ease;
+        }
+        .dot.idle {
+          background: #38bdf8;
         }
         .busy .dot {
           background: #f59e0b;
@@ -1193,23 +1222,30 @@
         }
       </style>
       <div id="badgeContainer" class="badge-container active">
-        <div id="restoreBtn" class="badge-main" title="Вернуть оригинальный текст страницы">
-          <span class="dot"></span>
+        <div id="actionBtn" class="badge-main" title="Вернуть оригинальный текст страницы">
+          <span id="dot" class="dot"></span>
           <span id="label">Оригинал (${src})</span>
         </div>
-        <div class="badge-divider"></div>
+        <div id="refreshDivider" class="badge-divider"></div>
         <div id="refreshBtn" class="badge-refresh" title="Обновить перевод страницы">
           <span id="refreshIcon" class="refresh-icon">⟳</span>
         </div>
+        <div class="badge-divider"></div>
+        <div id="closeBtn" class="badge-close" title="Скрыть панель">✕</div>
       </div>
     `;
 
-    const restoreBtn = shadowRoot.getElementById("restoreBtn");
+    const actionBtn = shadowRoot.getElementById("actionBtn");
     const refreshBtn = shadowRoot.getElementById("refreshBtn");
+    const closeBtn = shadowRoot.getElementById("closeBtn");
 
-    restoreBtn.addEventListener("click", () => {
+    actionBtn.addEventListener("click", () => {
       if (isTranslating) return;
-      restoreOriginal();
+      if (isTranslated) {
+        restoreOriginal();
+      } else {
+        translatePage();
+      }
     });
 
     refreshBtn.addEventListener("click", (e) => {
@@ -1218,54 +1254,95 @@
       refreshTranslation();
     });
 
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeFloatingWidget();
+    });
+
     document.documentElement.appendChild(widgetContainer);
   }
 
   function updateWidgetUI(state, data = {}) {
     if (!shadowRoot) return;
     const badgeContainer = shadowRoot.getElementById("badgeContainer");
-    const restoreBtn = shadowRoot.getElementById("restoreBtn");
+    const actionBtn = shadowRoot.getElementById("actionBtn");
+    const dot = shadowRoot.getElementById("dot");
     const label = shadowRoot.getElementById("label");
     const refreshBtn = shadowRoot.getElementById("refreshBtn");
+    const refreshDivider = shadowRoot.getElementById("refreshDivider");
     if (!badgeContainer || !label) return;
 
     badgeContainer.className = "badge-container";
     if (refreshBtn) refreshBtn.classList.remove("spinning");
+    if (dot) dot.className = "dot";
     const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
 
     if (state === "translating") {
       badgeContainer.classList.add("busy");
-      if (refreshBtn) refreshBtn.classList.add("spinning");
+      if (refreshBtn) {
+        refreshBtn.style.display = "inline-flex";
+        refreshBtn.classList.add("spinning");
+      }
+      if (refreshDivider) refreshDivider.style.display = "block";
       label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
-    } else if (state === "done" || state === "idle") {
+    } else if (state === "done" || (state === "active" && isTranslated)) {
       badgeContainer.classList.add("active");
+      if (refreshBtn) refreshBtn.style.display = "inline-flex";
+      if (refreshDivider) refreshDivider.style.display = "block";
       label.textContent = `Оригинал (${src})`;
-      if (restoreBtn) restoreBtn.title = "Вернуть оригинальный текст страницы";
+      if (actionBtn) actionBtn.title = "Вернуть оригинальный текст страницы";
     } else if (state === "refreshed") {
       badgeContainer.classList.add("active");
+      if (refreshBtn) refreshBtn.style.display = "inline-flex";
+      if (refreshDivider) refreshDivider.style.display = "block";
       label.textContent = "✓ Обновлено";
       setTimeout(() => {
         if (label && isTranslated) {
           label.textContent = `Оригинал (${src})`;
         }
       }, 1500);
+    } else if (state === "idle" || !isTranslated) {
+      badgeContainer.classList.add("idle");
+      if (dot) dot.classList.add("idle");
+      if (refreshBtn) refreshBtn.style.display = "none";
+      if (refreshDivider) refreshDivider.style.display = "none";
+      label.textContent = `Перевести (${tgt})`;
+      if (actionBtn) actionBtn.title = "Перевести страницу";
     } else if (state === "no_text") {
       label.textContent = "Нет текста";
       setTimeout(() => {
         if (label) {
-          label.textContent = `Оригинал (${src})`;
+          if (isTranslated) {
+            label.textContent = `Оригинал (${src})`;
+          } else {
+            label.textContent = `Перевести (${tgt})`;
+          }
         }
       }, 2000);
     } else if (state === "error") {
       badgeContainer.classList.add("error");
       label.textContent = "Ошибка API";
-      if (restoreBtn) restoreBtn.title = data.error || "Ошибка подключения";
+      if (actionBtn) actionBtn.title = data.error || "Ошибка подключения";
       setTimeout(() => {
-        badgeContainer.className = "badge-container active";
-        label.textContent = `Оригинал (${src})`;
+        if (isTranslated) {
+          badgeContainer.className = "badge-container active";
+          label.textContent = `Оригинал (${src})`;
+        } else {
+          badgeContainer.className = "badge-container idle";
+          if (dot) dot.classList.add("idle");
+          label.textContent = `Перевести (${tgt})`;
+        }
       }, 4000);
     } else {
-      label.textContent = `Оригинал (${src})`;
+      if (isTranslated) {
+        badgeContainer.classList.add("active");
+        label.textContent = `Оригинал (${src})`;
+      } else {
+        badgeContainer.classList.add("idle");
+        if (dot) dot.classList.add("idle");
+        label.textContent = `Перевести (${tgt})`;
+      }
     }
   }
 
