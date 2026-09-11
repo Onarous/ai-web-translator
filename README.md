@@ -28,12 +28,12 @@ By strictly updating `TextNode.nodeValue` and live DOM attributes, it translates
 
 ### Option 1: Windows 1-Click Installer (Recommended)
 
-1. Download or clone this repository and double-click **`install.bat`**.
+1. Download **[ai-web-translator-v1.0.0.zip](https://github.com/Onarous/ai-web-translator/releases/latest/download/ai-web-translator-v1.0.0.zip)** from the [Releases](https://github.com/Onarous/ai-web-translator/releases) page (or clone this repository), extract the archive, and double-click **`install.bat`**.
 2. Choose from the interactive menu:
    - **`[1] Copy extension path to clipboard (without opening browser)`**: Prepares files and copies the path `%LOCALAPPDATA%\AI-Translator\extension` directly to your clipboard for quick `Ctrl + V` pasting in the browser folder dialog.
    - **`[2] Install to browser`**: Prepares files, opens the extension folder in File Explorer, and displays step-by-step instructions with direct links (`chrome://extensions`, `edge://extensions`).
    - **`[3] Launch browser with extension`**: Starts your browser with the `--load-extension` flag for immediate testing.
-   - **`[4] Build release ZIP package`**: Compiles a clean production archive in `dist/AI-Translator-v1.0.0.zip`.
+   - **`[4] Build release ZIP package`**: Compiles a clean production archive in `dist/ai-web-translator-v1.0.0.zip`.
    - **`[5] Remove extension from AppData`**: Removes installed files from the AppData directory.
 
 ### Option 2: Manual Installation (All Operating Systems)
