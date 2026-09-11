@@ -109,7 +109,7 @@ function Install-ExtensionFiles {
         New-Item -ItemType Directory -Path $targetInstallDir -Force | Out-Null
     }
 
-    $filesToCopy = @("manifest.json", "popup.html", "popup.js", "content.js", "background.js", "config.js", "i18n.js", "README.md", "LICENSE")
+    $filesToCopy = @("manifest.json", "popup.html", "popup.js", "content.js", "background.js", "config.js", "i18n.js", "README.md", "README.ru.md", "LICENSE")
     foreach ($f in $filesToCopy) {
         $src = Join-Path $sourceToCopy $f
         if (Test-Path $src) {
@@ -220,13 +220,18 @@ function Show-Menu {
             }
         }
         "4" {
-            Write-Color "Сборка релизного архива..." Yellow
-            & node "$scriptDir\build_dist.js"
-            $distDir = Join-Path $scriptDir "dist"
-            if (Test-Path $distDir) {
-                Start-Process explorer.exe -ArgumentList $distDir
+            $buildScript = Join-Path $scriptDir "build_dist.js"
+            if (Test-Path $buildScript) {
+                Write-Color "Сборка релизного архива..." Yellow
+                & node $buildScript
+                $distDir = Join-Path $scriptDir "dist"
+                if (Test-Path $distDir) {
+                    Start-Process explorer.exe -ArgumentList $distDir
+                }
+                Write-Color "ZIP-архив успешно собран в папке dist!" Green
+            } else {
+                Write-Color "Вы используете готовый релизный пакет расширения." Yellow
             }
-            Write-Color "ZIP-архив успешно собран в папке dist!" Green
         }
         "5" {
             $parentDir = Join-Path $env:LOCALAPPDATA "AI-Translator"
