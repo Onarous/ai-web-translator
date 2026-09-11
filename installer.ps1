@@ -150,10 +150,10 @@ function Show-Menu {
 
     Write-Host ""
     Write-Color "Выберите действие:" Yellow
-    Write-Color "  [1] Установить в браузер (открыть chrome://extensions и скопировать путь)" Cyan
-    Write-Color "  [2] Прямой запуск браузера с предзагруженным расширением (Тест)" Cyan
-    Write-Color "  [3] Собрать чистый ZIP-архив расширения для распространения" Cyan
-    Write-Color "  [4] Создать ярлык на Рабочем столе" Cyan
+    Write-Color "  [1] Скопировать путь в буфер обмена (без открытия браузера)" Cyan
+    Write-Color "  [2] Установить в браузер (подготовить файлы, открыть проводник и инструкцию)" Cyan
+    Write-Color "  [3] Прямой запуск браузера с предзагруженным расширением (Тест)" Cyan
+    Write-Color "  [4] Собрать чистый ZIP-архив расширения для распространения" Cyan
     Write-Color "  [5] Удалить расширение из AppData" Red
     Write-Color "  [0] Выход" Gray
     Write-Host ""
@@ -165,30 +165,28 @@ function Show-Menu {
         "1" {
             Install-ExtensionFiles
             Write-Host ""
-            $selectedBrowser = if ($browsers.Count -gt 0) { $browsers[0] } else { $null }
-            if ($browsers.Count -gt 1) {
-                Write-Color "В какой браузер установить?" White
-                for ($i = 0; $i -lt $browsers.Count; $i++) {
-                    Write-Color "  [$($i + 1)] $($browsers[$i].Name)" Cyan
-                }
-                $bChoice = Read-Host "Выберите браузер (1-$($browsers.Count)) [1]"
-                $bIdx = 0
-                if ([int]::TryParse($bChoice, [ref]$bIdx) -and $bIdx -ge 1 -and $bIdx -le $browsers.Count) {
-                    $selectedBrowser = $browsers[$bIdx - 1]
-                }
-            }
-
+            Write-Color "[✓] Путь к расширению успешно скопирован в буфер обмена!" Green
+            Write-Color "    $targetInstallDir" Cyan
+            Write-Host ""
+            Write-Color "Браузер не открывался. Теперь вы можете нажать Ctrl + V в диалоге выбора папки." White
+        }
+        "2" {
+            Install-ExtensionFiles
             Write-Host ""
             Write-Color "================ ИНСТРУКЦИЯ ПО УСТАНОВКЕ ================" Yellow
-            Write-Color "1. В открывшемся браузере включите тумблер: 'Режим разработчика'" White
-            Write-Color "   (Developer mode в правом верхнем углу страницы)" Gray
-            Write-Color "2. Нажмите кнопку: 'Загрузить распакованное' (Load unpacked)" White
-            Write-Color "3. Вставьте путь из буфера обмена (Ctrl + V) и нажмите 'Выбор папки':" White
-            Write-Color "   $targetInstallDir" Cyan
+            Write-Color "1. В адресной строке вашего браузера откройте страницу расширений:" White
+            Write-Color "   * Google Chrome:   chrome://extensions" Cyan
+            Write-Color "   * Microsoft Edge:  edge://extensions" Cyan
+            Write-Color "   * Яндекс Браузер:  browser://extensions" Cyan
+            Write-Color "   * Brave:           brave://extensions" Cyan
+            Write-Color "2. В правом верхнем углу включите тумблер: 'Режим разработчика' (Developer mode)" White
+            Write-Color "3. Нажмите кнопку: 'Загрузить распакованное' (Load unpacked)" White
+            Write-Color "4. В окне выбора папки нажмите Ctrl + V (путь уже в буфере) и 'Выбор папки':" White
+            Write-Color "   $targetInstallDir" Magenta
             Write-Color "==========================================================" Yellow
             Write-Host ""
 
-            # Open folder in Explorer
+            # Open folder in Explorer with manifest selected
             $manifestFile = Join-Path $targetInstallDir "manifest.json"
             if (Test-Path $manifestFile) {
                 Start-Process explorer.exe -ArgumentList "/select,`"$manifestFile`""
@@ -196,16 +194,9 @@ function Show-Menu {
                 Start-Process explorer.exe -ArgumentList "`"$targetInstallDir`""
             }
 
-            # Open extensions page
-            if ($selectedBrowser) {
-                Start-Process $selectedBrowser.ExePath -ArgumentList $selectedBrowser.ExtensionsUrl
-            } else {
-                Start-Process "chrome://extensions/" -ErrorAction SilentlyContinue
-            }
-
-            Write-Color "Готово! Расширение готово к работе." Green
+            Write-Color "Папка с расширением открыта в проводнике. Путь скопирован в буфер обмена." Green
         }
-        "2" {
+        "3" {
             Install-ExtensionFiles
             Write-Host ""
             $selectedBrowser = if ($browsers.Count -gt 0) { $browsers[0] } else { $null }
@@ -228,7 +219,7 @@ function Show-Menu {
                 Write-Color "Браузер не найден для прямого запуска." Red
             }
         }
-        "3" {
+        "4" {
             Write-Color "Сборка релизного архива..." Yellow
             & node "$scriptDir\build_dist.js"
             $distDir = Join-Path $scriptDir "dist"
@@ -236,21 +227,6 @@ function Show-Menu {
                 Start-Process explorer.exe -ArgumentList $distDir
             }
             Write-Color "ZIP-архив успешно собран в папке dist!" Green
-        }
-        "4" {
-            $desktopDir = [Environment]::GetFolderPath("Desktop")
-            $shortcutPath = Join-Path $desktopDir "AI Translator - Установщик.lnk"
-            $wshShell = New-Object -ComObject WScript.Shell
-            $shortcut = $wshShell.CreateShortcut($shortcutPath)
-            $shortcut.TargetPath = Join-Path $scriptDir "install.bat"
-            $shortcut.WorkingDirectory = $scriptDir
-            $shortcut.Description = "Установщик и запуск AI Translator"
-            $iconPath = Join-Path $scriptDir "icons\icon128.png"
-            if (Test-Path $iconPath) {
-                $shortcut.IconLocation = "$iconPath,0"
-            }
-            $shortcut.Save()
-            Write-Color "Ярлык успешно создан на Рабочем столе: $shortcutPath" Green
         }
         "5" {
             $parentDir = Join-Path $env:LOCALAPPDATA "AI-Translator"
