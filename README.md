@@ -2,52 +2,85 @@
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![AI Providers](https://img.shields.io/badge/AI_Providers-OpenAI_%7C_Gemini_%7C_Claude_%7C_DeepSeek_%7C_Groq_%7C_Ollama-blueviolet)](https://github.com/XFN52/local-ai-web-translator)
-[![OpenAI Compatible](https://img.shields.io/badge/API-OpenAI_Compatible_v1-orange)](https://github.com/XFN52/local-ai-web-translator)
+[![AI Providers](https://img.shields.io/badge/AI_Providers-Gemini_%7C_OpenAI_%7C_Claude_%7C_DeepSeek_%7C_Groq_%7C_Ollama-blueviolet)](https://github.com/XFN52/local-ai-web-translator)
+[![OpenAI & Claude API](https://img.shields.io/badge/API-OpenAI_%26_Claude_Compatible-orange)](https://github.com/XFN52/local-ai-web-translator)
 [![Tests Passing](https://img.shields.io/badge/Tests-100%25_Passed-brightgreen)](test_dom_translation.js)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/XFN52/local-ai-web-translator/pulls)
 
-> **High-performance, 100% DOM-safe browser extension** for seamless web translation powered by cloud & local Large Language Models (LLMs). Built specifically for modern dynamic SPAs, React/Vue applications, and complex enterprise UI frameworks.
+> **High-performance, 100% DOM-safe browser extension** for seamless web translation powered by Cloud & Local Large Language Models (LLMs). Built specifically for modern dynamic Single Page Applications (SPAs), React/Vue virtual DOMs, and complex enterprise web interfaces.
 
 ---
 
 ## 🔍 Overview / Краткий обзор
 
-**AI Translator** solves the primary flaw of traditional web translators: broken layouts, corrupted React component state, detached event handlers, and frozen dropdowns. By operating strictly on `TextNode.nodeValue` and live DOM attributes, it translates web pages natively without re-rendering or modifying the underlying DOM hierarchy.
+**AI Translator** solves the fundamental flaw of traditional web translators (such as Google Translate or DeepL): broken UI layouts, corrupted React/Vue component state, detached event handlers, and frozen dropdowns. By operating strictly on `TextNode.nodeValue` and live DOM attributes, it translates web pages natively without re-rendering or modifying the underlying DOM hierarchy.
 
-- **English**: Lightweight Chrome Extension (Manifest V3) for universal web translation using cloud & local LLMs (OpenAI, Gemini, Claude, DeepSeek, Groq, Ollama, LM Studio).
-- **Русский**: Браузерное расширение (Manifest V3) для точного перевода веб-интерфейсов с китайского на русский язык через локальные нейросети.
-- **中文**: 基于本地大语言模型 (Ollama / vLLM / LM Studio) 的 Chrome 扩展 (Manifest V3)，实现中文到俄语的高保真无损网页翻译，专为 React / Vue SPA 设计。
+- **English**: Universal browser extension (Manifest V3) for AI-powered web translation with support for cloud LLMs (Google Gemini, OpenAI, Anthropic Claude, DeepSeek, Groq, OpenRouter) and local offline backends (Ollama, LM Studio, vLLM, LocalAI).
+- **Русский**: Универсальное браузерное расширение (Manifest V3) для умного перевода страниц через любые облачные и локальные нейросети. Поддерживает множественные профили, авторотацию при лимитах (429), автоопределение языка и гарантирует полную сохранность React/Vue разметки.
+- **中文**: 基于大语言模型（云端 API 与本地模型）的高性能 Chrome 网页翻译扩展 (Manifest V3)，100% 保护 React / Vue DOM 树，支持多配置管理、限流自动轮询切换与 JSON 导入导出。
 
 ---
 
 ## ⚡ Key Highlights & Comparison / Сравнение
 
-| Feature / Критерий | Standard Translators (Google, DeepL) | Local AI Web Translator (Ours) |
+| Feature / Критерий | Standard Translators (Google, DeepL) | AI Translator (Ours) |
 | :--- | :--- | :--- |
 | **DOM Safety & React VDOM** | ❌ Replaces innerHTML, crashes React/Vue | ✅ **100% safe**: updates only `TextNode.nodeValue` |
-| **Complex UI & Selects** | ❌ Breaks portals, freezes Semi UI dropdowns | ✅ **Protected**: portal detection & auto-closing |
-| **Hover Tooltips & Attributes** | ❌ Ignores `data-tooltip`, `placeholder` | ✅ **Live scan**: translates attributes on the fly |
-| **Token & Quota Consumption** | ❌ Floods LLM with entire document | ✅ **Viewport-Only**: translates visible viewport + lazy scroll |
-| **Translation Caching** | ❌ Re-queries API on navigation | ✅ **Dual-Tier**: instant `pageCache` + 5,000 LRU storage |
-| **SPA Route Stability** | ❌ Translation resets on tab switch | ✅ **Persistent**: hooks `pushState`, `popstate`, `focus` |
-| **Privacy & Security** | ❌ Sends private company data to cloud | ✅ **100% Local & Offline**: zero external telemetry |
-| **Restoration Fidelity** | ❌ Needs full page reload | ✅ **Bit-Exact**: instant rollback via `WeakMap` |
+| **Complex UI & Selects** | ❌ Breaks portals, freezes dropdowns | ✅ **Protected**: portal detection & safe event propagation |
+| **Hover Tooltips & Attributes** | ❌ Ignores `data-tooltip`, `placeholder` | ✅ **Live scan**: translates attributes dynamically |
+| **AI Provider Freedom** | ❌ Locked to proprietary vendor engine | ✅ **Universal**: Gemini, Claude, DeepSeek, OpenAI, Groq, Ollama, LM Studio |
+| **Multi-Profile Management** | ❌ Single fixed endpoint | ✅ **Multi-profiles**: switch instantly between models & providers |
+| **Auto-Rotation on Rate Limits** | ❌ Hard stop on quota errors (HTTP 429) | ✅ **Automatic Failover**: auto-switches to next profile on 429/quota error |
+| **Config Portability** | ❌ Manual setup on each machine | ✅ **JSON Import & Export**: 1-click backup and migration |
+| **Language Selection** | ⚠️ Often requires manual pair selection | ✅ **Auto-Detection**: `AUTO → RU` by default + custom pairs |
+| **Token & Quota Consumption** | ❌ Floods LLM with entire document | ✅ **Viewport-Only**: translates visible screen + lazy scroll observer |
+| **Translation Caching** | ❌ Re-queries API on navigation | ✅ **Dual-Tier**: instant `pageCache` + 5,000 LRU persistent storage |
+| **Original Text Restoration** | ❌ Requires full page reload | ✅ **Bit-Exact**: instant rollback via `WeakMap` with 1 click |
+| **Interactive Floating Widget** | ❌ Fixed or intrusive banner | ✅ **Draggable Widget**: live status, Original/Translate toggle, refresh button `⟳`, close `✕` |
 
 ---
 
 ## 🚀 Key Features / Ключевые возможности
 
-- 🛡️ **100% DOM Tree Integrity**: Zero alterations to DOM structure or CSS layout. React fibers, event listeners, and Vue virtual nodes stay untouched.
-- 👁️ **Viewport-Only Scan & Lazy Scroll**: Translates only what is visible on the user's screen. Offscreen elements are registered in an `IntersectionObserver` and translated on scroll, reducing LLM token consumption by up to 80%.
-- ⚡ **Dual-Tier High-Performance Caching**:
-  - In-memory synchronous `pageCache` for instant translation of recurring UI labels.
-  - Persistent LRU cache up to 5,000 entries stored in `chrome.storage.local`.
-  - In-batch deduplication: identical Chinese strings in the same batch are sent to the LLM only once.
-- 💬 **Dynamic Tooltip & Attribute Translation**: Automatically tracks and translates `data-tooltip`, `data-title`, `data-tip`, `title`, `placeholder`, and `aria-label`.
-- 🔄 **Enterprise SPA & Tab Resiliency**: Automatically handles route transitions (`pushState`, `replaceState`, `hashchange`, `popstate`), tab switches (`visibilitychange`, `focus`), and React component re-mounts.
-- 🎯 **Semi UI / Ant Design Fixes**: Special handling for `.semi-portal`, `.semi-popover`, `.semi-select-option`, and capture-phase click delegation preventing dropdown lockups.
-- 🔒 **Privacy-First & Masked Logging**: Local background logging (`logger.js`) with automatic redaction of API keys (`sk-***`, `Bearer ***`).
+### 1. 🛡️ 100% DOM-Safe Translation Engine
+- Mutates **only** `TextNode.nodeValue` without altering DOM node references or CSS styling.
+- React fibers, Vue reactive proxies, and Angular zones remain completely intact.
+- Seamlessly handles portals, popovers (`.semi-portal`, `.ant-popover`), and dropdown option lists.
+
+### 2. 🤖 Universal AI Provider & Model Support
+- Built-in adapters for:
+  - **Google Gemini Cloud**: native OpenAI-compatible endpoint with default model `gemini-3.5-flash-lite`.
+  - **Anthropic Claude**: native Claude API format (`/v1/messages`) with `anthropic-version: 2023-06-01`.
+  - **DeepSeek API**: `deepseek-chat` (DeepSeek-V3) and `deepseek-reasoner` (DeepSeek-R1).
+  - **OpenAI**: official ChatGPT models (`gpt-4o-mini`, `gpt-4o`).
+  - **Groq Cloud**: ultra-fast LPU inference (`llama-3.3-70b-versatile`).
+  - **Local Offline Models**: Ollama (`qwen2.5:latest`), LM Studio (`localhost:1234`), vLLM, LocalAI.
+  - **Aggregators & Proxies**: OpenRouter, Mistral AI, custom corporate reverse proxies.
+
+### 3. 👥 Multi-Profile Management & Auto-Rotation (Failover)
+- **Profile Profiles Storage**: Create and name distinct profiles (e.g., *"Gemini Flash"*, *"DeepSeek V3"*, *"Ollama Local"*, *"OpenAI Backup"*), each with its own API URL, API Key, Model, and Batch Size.
+- **Instant Switching**: Switch active configuration directly from the profile dropdown in the popup.
+- **Smart Auto-Rotation on Rate Limit (429)**: If the active provider returns HTTP 429 (`RESOURCE_EXHAUSTED`, `insufficient_quota`, or `rate_limit_exceeded`), the extension automatically rotates to the next configured profile and retries translating seamlessly.
+- **JSON Import / Export**: One-click export (`📤 Экспорт JSON`) saves all profiles into a timestamped JSON file (`ai_translator_profiles_YYYY-MM-DD.json`). One-click import (`📥 Импорт JSON`) restores configurations across devices.
+
+### 4. 🌐 Auto-Detection & Multilingual Translation
+- Default source language is set to **Авто (AUTO)**, automatically detecting source language on the fly.
+- Supports translating into Russian (RU), English (EN), Chinese (ZH), Spanish (ES), German (DE), Japanese (JA), and French (FR).
+
+### 5. 👁️ Viewport-Only Scan & Lazy Scroll
+- Translates only the content currently visible on the screen.
+- Offscreen elements are registered in an `IntersectionObserver` and translated lazily as the user scrolls, cutting token costs by up to 80%.
+
+### 6. ⚡ Dual-Tier High-Performance Caching
+- **Memory Cache (`pageCache`)**: Instant synchronous translation for recurring UI labels and navigation items.
+- **Persistent LRU Cache**: Up to 5,000 entries saved in `chrome.storage.local`.
+- **In-Batch Deduplication**: Identical strings in the same batch are sent to the LLM only once.
+
+### 7. 🪟 Interactive On-Page Status Widget
+- Displays live progress: spinner icon, translated elements counter, and active profile name.
+- **"Оригинал" / "Перевод" Button**: One-click instant toggle between translated text and bit-exact original text (restored from internal `WeakMap`).
+- **Refresh Button (`⟳`)**: Force-scans and translates newly rendered dynamic elements (AJAX, modals, infinite scroll).
+- **Close Button (`✕`)**: Hides the floating widget from view.
 
 ---
 
@@ -56,9 +89,9 @@
 ```text
 Web Page DOM
      │
-     ├──► TreeWalker(NodeFilter.SHOW_TEXT) ──► Filter Ignored Tags (script, style, code...)
+     ├──► TreeWalker(NodeFilter.SHOW_TEXT) ──► Filter Ignored Tags (script, style, code, pre...)
      │
-     ├──► collectChineseAttributes() ────────► Filter (data-tooltip, placeholder, title...)
+     ├──► collectTranslatableAttributes() ──► Filter (data-tooltip, placeholder, title, aria-label)
      │
      ▼
 Viewport Check (isElementInViewport)
@@ -69,80 +102,122 @@ Viewport Check (isElementInViewport)
      │                                                    ▼
      │                                            background.js Service Worker
      │                                                    │
+     │                                     ┌──────────────┴──────────────┐
+     │                                     ▼                             ▼
+     │                             OpenAI / Gemini / Groq        Anthropic Claude
+     │                             /v1/chat/completions          /v1/messages
+     │                                     │                             │
+     │                                     └──────────────┬──────────────┘
      │                                                    ▼
-     │                                      Local LLM API (Ollama / vLLM / LM Studio)
-     │                                                    │
-     │                                                    ▼
-     │                                         Atomic DOM nodeValue Update
+     │                                       Rate Limit / 429 Occurred?
+     │                                      ┌─────────────┴─────────────┐
+     │                                     YES                          NO
+     │                                      │                            │
+     │                                      ▼                            ▼
+     │                            Auto-Rotate Profile              Return Translated
+     │                                & Retry Batch                      Array
+     │                                                                   │
+     │                                                                   ▼
+     │                                                      Atomic DOM nodeValue Update
      │
-     └──► Below Fold   ──► Register in IntersectionObserver ──► Translate on Scroll
+     └──► Below Fold   ──► Register in IntersectionObserver ──► Translate on User Scroll
 ```
 
 ---
 
-## 📦 Supported Local AI Backends / Совместимые бэкенды
+## 📦 Supported Providers & Configurations / Провайдеры и настройки
 
-Local AI Web Translator works with any OpenAI-compatible `/v1/chat/completions` endpoint:
-
-| Backend | Default Endpoint | Authorization | Notes |
+| Provider | Endpoint URL | API Key | Model Name Example |
 | :--- | :--- | :--- | :--- |
-| **Google Gemini (Cloud)** | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | Bearer (`AIzaSy...`) | Direct Google AI Studio API support (`gemini-3.5-flash-lite`) |
-| **DeepSeek API** | `https://api.deepseek.com/chat/completions` | Bearer (`sk-...`) | DeepSeek-V3 / DeepSeek-R1 (`deepseek-chat`) |
-| **OpenAI (ChatGPT)** | `https://api.openai.com/v1/chat/completions` | Bearer (`sk-proj-...`) | Official ChatGPT models (`gpt-4o-mini`, `gpt-4o`) |
-| **Groq Cloud** | `https://api.groq.com/openai/v1/chat/completions` | Bearer (`gsk_...`) | Ultra-fast LPU inference (`llama-3.3-70b-versatile`) |
-| **OpenRouter** | `https://openrouter.ai/api/v1/chat/completions` | Bearer (`sk-or-...`) | All global models aggregator |
-| **Anthropic Claude** | `https://api.anthropic.com/v1/messages` | x-api-key (`sk-ant-...`) | Native Claude API (`claude-3-5-haiku-20241022`) |
-| **Mistral AI** | `https://api.mistral.ai/v1/chat/completions` | Bearer | European LLMs (`mistral-small-latest`) |
-| **Ollama** | `http://localhost:11434/v1/chat/completions` | None required | Fast, lightweight local deployment (`qwen2.5:latest`) |
-| **LM Studio** | `http://localhost:1234/v1/chat/completions` | None required | Interactive GUI for GGUF models |
-| **vLLM / LocalAI** | `http://localhost:8000/v1/chat/completions` | Optional Bearer | High-throughput batching for local servers |
-| **Custom Proxy** | `http://localhost:8045/v1/chat/completions` | Bearer token | Compatible with custom gateways |
-
-### Recommended Models for Chinese → Russian (ZH → RU)
-
-- **Qwen 2.5 (7B / 14B / 32B)**: Exceptional translation accuracy and cultural nuance handling for Chinese idioms and technical terms.
-- **DeepSeek-V3 / DeepSeek-R1**: State-of-the-art multilingual reasoning and concise UI translation.
-- **Gemini-Flash**: Ultra-low latency, ideal for real-time web browsing.
+| **Google Gemini Cloud** | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | AI Studio API key (`AIzaSy...`) | `gemini-3.5-flash-lite` *(Default)* |
+| **DeepSeek API** | `https://api.deepseek.com/chat/completions` | DeepSeek Key (`sk-...`) | `deepseek-chat` / `deepseek-reasoner` |
+| **OpenAI (ChatGPT)** | `https://api.openai.com/v1/chat/completions` | OpenAI Key (`sk-proj-...`) | `gpt-4o-mini` / `gpt-4o` |
+| **Groq Cloud** | `https://api.groq.com/openai/v1/chat/completions` | Groq Key (`gsk_...`) | `llama-3.3-70b-versatile` |
+| **Anthropic Claude** | `https://api.anthropic.com/v1/messages` | Anthropic Key (`sk-ant-...`) | `claude-3-5-haiku-20241022` |
+| **OpenRouter** | `https://openrouter.ai/api/v1/chat/completions` | OpenRouter Key (`sk-or-...`) | `meta-llama/llama-3.3-70b-instruct` |
+| **Mistral AI** | `https://api.mistral.ai/v1/chat/completions` | Mistral Key | `mistral-small-latest` |
+| **Ollama (Local)** | `http://localhost:11434/v1/chat/completions` | *Leave empty* | `qwen2.5:latest` |
+| **LM Studio (Local)** | `http://localhost:1234/v1/chat/completions` | *Leave empty* | `model-identifier` |
+| **Custom Proxy** | `http://localhost:8045/v1/chat/completions` | *Optional* | Custom model name |
 
 ---
 
 ## 📥 Installation / Установка
 
-1. **Clone the repository**:
+1. **Clone or download the repository**:
    ```bash
    git clone https://github.com/XFN52/local-ai-web-translator.git
    ```
-2. **Open Extensions page** in your Chromium browser (Chrome, Edge, Brave, Vivaldi):
+2. **Open Extensions page** in your Chromium browser (Chrome, Microsoft Edge, Brave, Vivaldi, Opera, Yandex):
    ```text
    chrome://extensions/
    ```
-3. Enable **"Developer mode"** (Режим разработчика) in the top-right corner.
-4. Click **"Load unpacked"** (Загрузить распакованное) and select the cloned project folder.
+3. Turn ON **"Developer mode"** (Режим разработчика) in the top-right corner.
+4. Click **"Load unpacked"** (Загрузить распакованное расширение) and select the project folder.
 
 ---
 
-## ⚙️ Configuration / Настройка
+## ⚙️ How to Use / Инструкция по использованию
 
-Click the extension icon in your browser toolbar to open the control popup:
+### Quick Start
+1. Open any web page.
+2. Click the **AI Translator** icon in the browser toolbar.
+3. Choose your language direction (e.g., **"Авто (AUTO) → Русский (RU)"**).
+4. Click **"Перевести страницу"** (Translate Page).
 
-- **API URL**: Endpoint URL (Default: `http://localhost:8045/v1/chat/completions` or `http://localhost:11434/v1/chat/completions`).
-- **Model**: LLM model name (e.g. `gemini-3.8-flash-low`, `qwen2.5:latest`, `deepseek-v3`).
-- **API Key**: Bearer token (optional for Ollama/LM Studio, required for secured endpoints).
-- **Batch Size**: Number of strings per batch request (Default: `20`, Range: `5–50`).
-- **Cache Controls**: Live display of cached entries and one-click "Clear Cache" button.
+### Profile Management & Auto-Rotation
+1. In the popup, click **"Настройки API"** to expand configuration options.
+2. Under **"Профили конфигурации"**:
+   - Select an existing profile from the dropdown.
+   - Or click **"➕ Новый"** to create a new profile.
+   - Enter profile name, API URL, API key, model name, and batch size, then click **"💾 Сохранить"**.
+   - Enable **"Авторотация при исчерпании лимитов"**: if an API key hits rate limits (HTTP 429), the extension switches to your next profile automatically!
+3. **Backup & Share**:
+   - Click **"📤 Экспорт JSON"** to download all saved profiles.
+   - Click **"📥 Импорт JSON"** to import profiles on any device.
+
+### On-Page Widget Controls
+When translation begins, a floating widget appears in the bottom-right corner:
+- **Status & Counter**: Shows translation progress and active profile name.
+- **"Оригинал" / "Перевод"**: Toggle back and forth between translated text and original page content without refreshing.
+- **"⟳" (Refresh)**: Force-scans the DOM and translates newly loaded dynamic blocks (infinite feeds, popups, comments).
+- **"✕" (Close)**: Hides the floating widget.
 
 ---
 
 ## 🧪 Testing / Тестирование
 
-Run the integrated automated test suite validating DOM extraction, tooltip collection, LRU cache eviction, in-batch deduplication, and 100% exact rollback:
+Run the automated test suite verifying DOM extraction, attribute translation, LRU cache eviction, in-batch deduplication, and 100% exact rollback:
 
 ```bash
 node test_dom_translation.js
 ```
+
+Expected output:
+```text
+=== AI Web Translator Test Suite ===
+Running test 1: TreeWalker extracts only visible translatable text nodes... [PASS]
+Running test 2: Ignored tags are skipped... [PASS]
+Running test 3: Translatable attributes are extracted... [PASS]
+Running test 4: LRU Cache stores and evicts correctly... [PASS]
+Running test 5: Batch deduplication logic... [PASS]
+Running test 6: Restore original text fidelity via WeakMap... [PASS]
+Running test 7: Multi-profile schema validation & JSON import/export... [PASS]
+Running test 8: Anthropic Claude payload adapter format... [PASS]
+All tests passed successfully!
+```
+
+---
+
+## 🔒 Security & Privacy / Безопасность
+
+- **Zero Third-Party Tracking**: The extension contains no analytics, telemetry, or external tracking scripts.
+- **Direct API Communication**: Network requests go strictly and directly to the endpoint URL specified in your active profile.
+- **Masked Logging**: The background logger automatically redacts sensitive authorization tokens (`Bearer ***`, `sk-***`) from console logs.
 
 ---
 
 ## 📄 License
 
 This project is open-source and licensed under the [MIT License](LICENSE).
+
