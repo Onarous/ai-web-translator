@@ -161,21 +161,36 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = D
 
   const systemPrompt = buildSystemPrompt(srcLang, tgtLang);
 
-  const requestBody = {
-    model: targetModel,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: JSON.stringify(texts) }
-    ],
-    temperature: 0.1,
-    stream: false
-  };
-
+  const isAnthropic = endpoint.includes("anthropic.com");
   const headers = {
     "Content-Type": "application/json"
   };
-  if (key) {
-    headers["Authorization"] = `Bearer ${key}`;
+  let requestBody;
+
+  if (isAnthropic) {
+    if (key) headers["x-api-key"] = key;
+    headers["anthropic-version"] = "2023-06-01";
+    requestBody = {
+      model: targetModel || "claude-3-5-haiku-20241022",
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [
+        { role: "user", content: JSON.stringify(texts) }
+      ]
+    };
+  } else {
+    if (key) {
+      headers["Authorization"] = `Bearer ${key}`;
+    }
+    requestBody = {
+      model: targetModel,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: JSON.stringify(texts) }
+      ],
+      temperature: 0.1,
+      stream: false
+    };
   }
 
   let response;
@@ -199,14 +214,16 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = D
       status: response.status,
       errorBody: errText
     });
-    throw new Error(`Local AI API error (${response.status}): ${errText || response.statusText}`);
+    throw new Error(`AI API error (${response.status}): ${errText || response.statusText}`);
   }
 
   const data = await response.json();
-  const rawContent = data?.choices?.[0]?.message?.content;
+  const rawContent = isAnthropic
+    ? data?.content?.[0]?.text
+    : data?.choices?.[0]?.message?.content;
   if (typeof rawContent !== "string") {
-    writeLog("ERROR", "PARSE", "Response missing choices[0].message.content", { rawData: data });
-    throw new Error("Invalid response structure from local AI API: missing choices[0].message.content");
+    writeLog("ERROR", "PARSE", "Response missing text content", { rawData: data });
+    throw new Error("Invalid response structure from AI API: missing message content");
   }
 
   const cleaned = cleanJsonOutput(rawContent);
@@ -379,6 +396,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       headers["Authorization"] = `Bearer ${key}`;
     }
     writeLog("INFO", "API", `Checking connection to ${endpoint}`);
+
+    if (endpoint.includes("anthropic.com")) {
+      fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key || "",
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: targetModel || "claude-3-5-haiku-20241022",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "ping" }]
+        })
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            writeLog("INFO", "API", `Anthropic connection successful: HTTP ${res.status}`);
+            sendResponse({ ok: true, status: res.status });
+          } else {
+            const errData = await res.json().catch(() => null);
+            const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+            writeLog("WARN", "API", `Anthropic connection failed: ${errMsg}`);
+            sendResponse({ ok: false, error: errMsg, status: res.status });
+          }
+        })
+        .catch((err) => {
+          writeLog("WARN", "API", `Anthropic connection check failed: ${err.message}`);
+          sendResponse({ ok: false, error: err.message });
+        });
+      return true;
+    }
 
     if (endpoint.includes("generativelanguage.googleapis.com")) {
       fetch(endpoint, {

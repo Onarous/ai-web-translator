@@ -244,24 +244,36 @@
   <span id="toggleSettings" class="settings-toggle">Настройки API</span>
 
   <div id="settingsPanel" class="settings-panel">
-    <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-      <button id="presetLocalBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px;">⚡ Локальный (8045)</button>
-      <button id="presetGeminiBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px;">🌐 Google Gemini</button>
+    <div class="field" style="margin-bottom: 10px;">
+      <label for="providerSelect">Провайдер ИИ (быстрый выбор):</label>
+      <select id="providerSelect">
+        <option value="" disabled selected>-- Выберите провайдера или свой API --</option>
+        <option value="gemini">🌐 Google Gemini (gemini-3.5-flash-lite)</option>
+        <option value="deepseek">🐋 DeepSeek API (deepseek-chat / V3)</option>
+        <option value="openai">🤖 OpenAI (ChatGPT / gpt-4o-mini)</option>
+        <option value="groq">⚡ Groq (Llama 3.3 70B - ультраскорость)</option>
+        <option value="openrouter">🔀 OpenRouter (Все модели мира)</option>
+        <option value="anthropic">🧠 Anthropic Claude (claude-3-5-haiku)</option>
+        <option value="mistral">🇪🇺 Mistral AI (mistral-small)</option>
+        <option value="ollama">🦙 Ollama (Локально: 11434)</option>
+        <option value="lmstudio">💻 LM Studio (Локально: 1234)</option>
+        <option value="local8045">⚡ Локальный прокси (8045)</option>
+      </select>
     </div>
 
     <div class="field">
-      <label for="apiUrl">API URL (OpenAI-compatible):</label>
+      <label for="apiUrl">API URL:</label>
       <input type="text" id="apiUrl" placeholder="http://localhost:8045/v1/chat/completions">
     </div>
 
     <div class="field">
-      <label for="apiKey">API Key (Bearer / Google AI Studio):</label>
+      <label for="apiKey">API Key (Ключ авторизации):</label>
       <input type="password" id="apiKey" placeholder="sk-... или AIzaSy...">
     </div>
 
     <div class="field">
-      <label for="model">Модель:</label>
-      <input type="text" id="model" placeholder="gemini-3.5-flash-lite или gemini-3.8-flash-low">
+      <label for="model">Модель ИИ:</label>
+      <input type="text" id="model" placeholder="Название модели (например, deepseek-chat)">
     </div>
 
     <div class="field">

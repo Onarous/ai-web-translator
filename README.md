@@ -86,11 +86,16 @@ Local AI Web Translator works with any OpenAI-compatible `/v1/chat/completions` 
 
 | Backend | Default Endpoint | Authorization | Notes |
 | :--- | :--- | :--- | :--- |
-| **Google Gemini (Cloud)** | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | Bearer (AIzaSy...) | Direct Google AI Studio API support |
-| **Ollama** | `http://localhost:11434/v1/chat/completions` | None required | Fast, lightweight local deployment |
+| **Google Gemini (Cloud)** | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | Bearer (`AIzaSy...`) | Direct Google AI Studio API support (`gemini-3.5-flash-lite`) |
+| **DeepSeek API** | `https://api.deepseek.com/chat/completions` | Bearer (`sk-...`) | DeepSeek-V3 / DeepSeek-R1 (`deepseek-chat`) |
+| **OpenAI (ChatGPT)** | `https://api.openai.com/v1/chat/completions` | Bearer (`sk-proj-...`) | Official ChatGPT models (`gpt-4o-mini`, `gpt-4o`) |
+| **Groq Cloud** | `https://api.groq.com/openai/v1/chat/completions` | Bearer (`gsk_...`) | Ultra-fast LPU inference (`llama-3.3-70b-versatile`) |
+| **OpenRouter** | `https://openrouter.ai/api/v1/chat/completions` | Bearer (`sk-or-...`) | All global models aggregator |
+| **Anthropic Claude** | `https://api.anthropic.com/v1/messages` | x-api-key (`sk-ant-...`) | Native Claude API (`claude-3-5-haiku-20241022`) |
+| **Mistral AI** | `https://api.mistral.ai/v1/chat/completions` | Bearer | European LLMs (`mistral-small-latest`) |
+| **Ollama** | `http://localhost:11434/v1/chat/completions` | None required | Fast, lightweight local deployment (`qwen2.5:latest`) |
 | **LM Studio** | `http://localhost:1234/v1/chat/completions` | None required | Interactive GUI for GGUF models |
-| **vLLM** | `http://localhost:8000/v1/chat/completions` | Optional Bearer | High-throughput batching for servers |
-| **LocalAI** | `http://localhost:8080/v1/chat/completions` | Optional Bearer | Self-hosted multi-model engine |
+| **vLLM / LocalAI** | `http://localhost:8000/v1/chat/completions` | Optional Bearer | High-throughput batching for local servers |
 | **Custom Proxy** | `http://localhost:8045/v1/chat/completions` | Bearer token | Compatible with custom gateways |
 
 ### Recommended Models for Chinese → Russian (ZH → RU)

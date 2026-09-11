@@ -15,14 +15,76 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveSettingsBtn = document.getElementById("saveSettingsBtn");
   const cacheStats = document.getElementById("cacheStats");
   const clearCacheBtn = document.getElementById("clearCacheBtn");
-  const presetLocalBtn = document.getElementById("presetLocalBtn");
-  const presetGeminiBtn = document.getElementById("presetGeminiBtn");
+  const providerSelect = document.getElementById("providerSelect");
   const sourceLangSelect = document.getElementById("sourceLang");
   const targetLangSelect = document.getElementById("targetLang");
   const swapLangsBtn = document.getElementById("swapLangsBtn");
   const langPairBadge = document.getElementById("langPairBadge");
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
+
+  const PROVIDERS = {
+    gemini: {
+      name: "Google Gemini Cloud",
+      url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      model: "gemini-3.5-flash-lite",
+      keyPlaceholder: "AIzaSy... (Google AI Studio)"
+    },
+    deepseek: {
+      name: "DeepSeek API",
+      url: "https://api.deepseek.com/chat/completions",
+      model: "deepseek-chat",
+      keyPlaceholder: "sk-... (DeepSeek Platform)"
+    },
+    openai: {
+      name: "OpenAI",
+      url: "https://api.openai.com/v1/chat/completions",
+      model: "gpt-4o-mini",
+      keyPlaceholder: "sk-proj-... (OpenAI Platform)"
+    },
+    groq: {
+      name: "Groq Cloud",
+      url: "https://api.groq.com/openai/v1/chat/completions",
+      model: "llama-3.3-70b-versatile",
+      keyPlaceholder: "gsk_... (Groq Console)"
+    },
+    openrouter: {
+      name: "OpenRouter",
+      url: "https://openrouter.ai/api/v1/chat/completions",
+      model: "deepseek/deepseek-chat",
+      keyPlaceholder: "sk-or-v1-... (OpenRouter Keys)"
+    },
+    anthropic: {
+      name: "Anthropic Claude",
+      url: "https://api.anthropic.com/v1/messages",
+      model: "claude-3-5-haiku-20241022",
+      keyPlaceholder: "sk-ant-... (Anthropic Console)"
+    },
+    mistral: {
+      name: "Mistral AI",
+      url: "https://api.mistral.ai/v1/chat/completions",
+      model: "mistral-small-latest",
+      keyPlaceholder: "API-ключ Mistral Console"
+    },
+    ollama: {
+      name: "Ollama (Локально)",
+      url: "http://localhost:11434/v1/chat/completions",
+      model: "qwen2.5:latest",
+      keyPlaceholder: "Не требуется (локальный сервер)"
+    },
+    lmstudio: {
+      name: "LM Studio (Локально)",
+      url: "http://localhost:1234/v1/chat/completions",
+      model: "local-model",
+      keyPlaceholder: "Не требуется (локальный сервер)"
+    },
+    local8045: {
+      name: "Локальный прокси 8045",
+      url: "http://localhost:8045/v1/chat/completions",
+      model: "gemini-3.8-flash-low",
+      keyPlaceholder: "sk-..."
+    }
+  };
 
   const DEFAULTS = {
     apiUrl: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiUrl : "http://localhost:8045/v1/chat/completions",
@@ -55,6 +117,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "error") statusDot.classList.add("error");
   }
 
+  function detectProvider(url) {
+    if (!url) return "";
+    for (const [key, p] of Object.entries(PROVIDERS)) {
+      try {
+        if (new URL(url).hostname === new URL(p.url).hostname) {
+          return key;
+        }
+      } catch (e) {
+        if (url.includes(key)) return key;
+      }
+    }
+    return "";
+  }
+
   // Load saved options
   chrome.storage.sync.get(DEFAULTS, (items) => {
     apiUrlInput.value = items.apiUrl || DEFAULTS.apiUrl;
@@ -68,6 +144,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sourceLangSelect) sourceLangSelect.value = items.sourceLang || DEFAULTS.sourceLang;
     if (targetLangSelect) targetLangSelect.value = items.targetLang || DEFAULTS.targetLang;
     updateBadge(items.sourceLang || DEFAULTS.sourceLang, items.targetLang || DEFAULTS.targetLang);
+
+    const matched = detectProvider(items.apiUrl || DEFAULTS.apiUrl);
+    if (matched && providerSelect) {
+      providerSelect.value = matched;
+      if (PROVIDERS[matched]) {
+        apiKeyInput.placeholder = PROVIDERS[matched].keyPlaceholder;
+      }
+    }
   });
 
   function saveLanguageSelection() {
@@ -100,22 +184,17 @@ document.addEventListener("DOMContentLoaded", () => {
     settingsPanel.classList.toggle("open");
   });
 
-  // Presets
-  if (presetLocalBtn) {
-    presetLocalBtn.addEventListener("click", () => {
-      apiUrlInput.value = "http://localhost:8045/v1/chat/completions";
-      modelInput.value = "gemini-3.8-flash-low";
-      setStatus("Выбран локальный пресет", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 1500);
-    });
-  }
-
-  if (presetGeminiBtn) {
-    presetGeminiBtn.addEventListener("click", () => {
-      apiUrlInput.value = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-      modelInput.value = "gemini-3.5-flash-lite";
-      setStatus("Выбран пресет Google Gemini Cloud", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 1500);
+  // Provider presets selector
+  if (providerSelect) {
+    providerSelect.addEventListener("change", () => {
+      const p = PROVIDERS[providerSelect.value];
+      if (p) {
+        apiUrlInput.value = p.url;
+        modelInput.value = p.model;
+        apiKeyInput.placeholder = p.keyPlaceholder;
+        setStatus(`Выбран: ${p.name}`, "active");
+        setTimeout(() => setStatus("Готов к переводу"), 2000);
+      }
     });
   }
 
