@@ -217,3 +217,21 @@
 - [i18n.js](file:///d:/перевод/local-ai-web-translator/i18n.js): полнофункциональный модуль i18n с поддержкой языков RU, EN, ZH и откатом на EN при других языках.
 - [_locales/](file:///d:/перевод/local-ai-web-translator/_locales): стандартные манифестные локали для Chrome.
 - Тест `node test_dom_translation.js` успешно пройден (все 10 наборов ассертов, код выхода 0).
+
+## 2026-09-11 — Задача 14
+Формулировка задачи: "собери инсталер для расширения"
+
+### Пункты:
+1. [x] Сгенерировать комплект PNG-иконок высокой четкости ([icons/](file:///d:/перевод/local-ai-web-translator/icons): 16x16, 32x32, 48x48, 128x128) через [scripts/generate_icons.js](file:///d:/перевод/local-ai-web-translator/scripts/generate_icons.js) и зарегистрировать их в [manifest.json](file:///d:/перевод/local-ai-web-translator/manifest.json).
+2. [x] Разработать скрипт сборки дистрибутива [build_dist.js](file:///d:/перевод/local-ai-web-translator/build_dist.js) для автоматической компиляции чистой папки `dist/extension` и релизного ZIP-архива `dist/AI-Translator-v1.0.0.zip` с проверкой хеша SHA-256.
+3. [x] Создать интерактивный установщик для Windows:
+   - [install.bat](file:///d:/перевод/local-ai-web-translator/install.bat) — запуск установщика в 1 клик через проводник Windows.
+   - [installer.ps1](file:///d:/перевод/local-ai-web-translator/installer.ps1) — PowerShell-скрипт с определением установленных Chromium-браузеров (Chrome, Edge, Brave, Yandex, Opera, Vivaldi), безопасной установкой в `%LOCALAPPDATA%\AI-Translator\extension`, копированием пути в буфер обмена, прямым запуском с `--load-extension` и созданием ярлыка.
+4. [x] Создать скрипт деинсталляции [uninstall.bat](file:///d:/перевод/local-ai-web-translator/uninstall.bat) для очистки файлов и ярлыков.
+5. [x] Добавить тест №11 в [test_dom_translation.js](file:///d:/перевод/local-ai-web-translator/test_dom_translation.js) и обновить документацию в [README.md](file:///d:/перевод/local-ai-web-translator/README.md).
+
+### Выясненные факты и проверки:
+- [install.bat](file:///d:/перевод/local-ai-web-translator/install.bat), [installer.ps1](file:///d:/перевод/local-ai-web-translator/installer.ps1), [uninstall.bat](file:///d:/перевод/local-ai-web-translator/uninstall.bat) проверены на живом вызове (код возврата 0).
+- `dist/AI-Translator-v1.0.0.zip` собран (45.6 KB).
+- Все 11 тестов в `node test_dom_translation.js` пройдены успешно (код 0).
+

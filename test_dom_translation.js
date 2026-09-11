@@ -536,7 +536,36 @@ class CacheTester {
   assert.ok(mockApiInput.placeholder.length > 0, "Localized input should have translated placeholder");
   assert.ok(mockSwapBtn.title.length > 0, "Localized button should have translated title");
 
-  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language, profile auto-rotation, JSON import/export & i18n verified.");
+  // 11. Test Installer, Build Scripts, Icons & Locales Package Integrity
+  const fs = require("fs");
+  const path = require("path");
+
+  assert.ok(fs.existsSync(path.join(__dirname, "install.bat")), "install.bat must exist");
+  assert.ok(fs.existsSync(path.join(__dirname, "installer.ps1")), "installer.ps1 must exist");
+  assert.ok(fs.existsSync(path.join(__dirname, "uninstall.bat")), "uninstall.bat must exist");
+  assert.ok(fs.existsSync(path.join(__dirname, "build_dist.js")), "build_dist.js must exist");
+
+  // Verify PNG icons exist and are valid PNG format (signature 89 50 4E 47 0D 0A 1A 0A)
+  const iconSizes = [16, 32, 48, 128];
+  for (const s of iconSizes) {
+    const iconPath = path.join(__dirname, "icons", `icon${s}.png`);
+    assert.ok(fs.existsSync(iconPath), `icon${s}.png must exist`);
+    const iconBuf = fs.readFileSync(iconPath);
+    assert.ok(iconBuf.length > 50, `icon${s}.png must have valid non-empty byte size`);
+    assert.strictEqual(iconBuf[0], 0x89, "PNG magic byte 0");
+    assert.strictEqual(iconBuf[1], 0x50, "PNG magic byte 1 ('P')");
+    assert.strictEqual(iconBuf[2], 0x4e, "PNG magic byte 2 ('N')");
+    assert.strictEqual(iconBuf[3], 0x47, "PNG magic byte 3 ('G')");
+  }
+
+  // Verify manifest.json references icons and locales
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "manifest.json"), "utf8"));
+  assert.strictEqual(manifest.manifest_version, 3, "Must be Manifest V3");
+  assert.ok(manifest.icons && manifest.icons["128"], "Must declare icons in manifest.json");
+  assert.ok(manifest.default_locale, "Must declare default_locale");
+
+  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language, profile auto-rotation, JSON import/export, i18n & installer verified.");
 })();
+
 
 

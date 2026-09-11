@@ -144,16 +144,33 @@ Viewport Check (isElementInViewport)
 
 ## 📥 Installation / Установка
 
-1. **Clone or download the repository**:
+### Вариант 1: Быстрый установщик в 1 клик для Windows (Рекомендуется)
+
+1. Скачайте репозиторий и дважды кликните по файлу **`install.bat`**.
+2. В появившемся меню:
+   - **`[1] Установить в браузер`**: файлы расширения автоматически копируются в безопасную системную директорию `%LOCALAPPDATA%\AI-Translator\extension`, путь копируется в буфер обмена, и открывается страница расширений вашего браузера (`chrome://extensions/` или `edge://extensions/`).
+   - Включите **«Режим разработчика»** в правом верхнем углу страницы браузера.
+   - Нажмите **«Загрузить распакованное»** и выберите скопированный путь (или нажмите `Ctrl+V`).
+   - **`[2] Прямой запуск`**: мгновенно запускает браузер с уже подключенным расширением без лишних кликов.
+   - **`[3] Собрать ZIP`**: компилирует релизный архив `dist/AI-Translator-v1.0.0.zip` для публикации или отправки.
+   - **`[4] Создать ярлык`**: создает ярлык установщика на Рабочем столе.
+
+### Вариант 2: Ручная установка (Любая ОС)
+
+1. **Клонируйте репозиторий**:
    ```bash
    git clone https://github.com/XFN52/local-ai-web-translator.git
    ```
-2. **Open Extensions page** in your Chromium browser (Chrome, Microsoft Edge, Brave, Vivaldi, Opera, Yandex):
-   ```text
-   chrome://extensions/
-   ```
-3. Turn ON **"Developer mode"** (Режим разработчика) in the top-right corner.
-4. Click **"Load unpacked"** (Загрузить распакованное расширение) and select the project folder.
+2. **Откройте страницу расширений** в вашем Chromium-браузере:
+   - Google Chrome: `chrome://extensions/`
+   - Microsoft Edge: `edge://extensions/`
+   - Brave: `brave://extensions/`
+   - Яндекс Браузер: `browser://extensions/`
+3. Включите **«Режим разработчика»** (Developer mode) в правом верхнем углу.
+4. Нажмите **«Загрузить распакованное»** (Load unpacked) и укажите папку проекта (или папку `dist/extension`).
+
+### Удаление расширения
+- Запустите **`uninstall.bat`** для быстрой очистки файлов из `AppData` и удаления ярлыка с Рабочего стола, затем нажмите «Удалить» в списке расширений браузера.
 
 ---
 

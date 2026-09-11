@@ -1,4 +1,4 @@
-﻿# Logs
+# Logs
 logs/
 *.log
 
@@ -16,3 +16,6 @@ desktop.ini
 .idea/
 .vscode/
 *.swp
+
+# Build artifacts
+dist/
