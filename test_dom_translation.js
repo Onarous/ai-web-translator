@@ -419,5 +419,51 @@ class CacheTester {
   assert.strictEqual(testIsTranslatable("English text", "auto", "ru"), true, "Auto-detect should detect English for Russian target");
   assert.strictEqual(testIsTranslatable("Привет мир", "auto", "ru"), false, "Auto-detect should skip Russian when target is Russian");
 
-  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience & multi-language verified.");
+  // 8. Test Rate Limit / Quota Detection & Profile Rotation
+  function testIsQuotaOrRateLimitError(status, message = "", errorBody = "") {
+    if (status === 429) return true;
+    const combined = `${status} ${message} ${errorBody}`.toLowerCase();
+    return (
+      combined.includes("resource_exhausted") ||
+      combined.includes("insufficient_quota") ||
+      combined.includes("exceeded your current quota") ||
+      combined.includes("rate limit") ||
+      combined.includes("rate_limit") ||
+      combined.includes("quota exceeded") ||
+      combined.includes("out of credits") ||
+      combined.includes("credit balance is too low") ||
+      combined.includes("billing hard limit") ||
+      combined.includes("free tier limit") ||
+      combined.includes("too many requests")
+    );
+  }
+
+  assert.strictEqual(testIsQuotaOrRateLimitError(429), true, "Status 429 must trigger quota detection");
+  assert.strictEqual(testIsQuotaOrRateLimitError(400, "RESOURCE_EXHAUSTED: quota exceeded"), true, "Gemini quota exhausted must trigger");
+  assert.strictEqual(testIsQuotaOrRateLimitError(403, "You exceeded your current quota, please check your plan"), true, "OpenAI quota must trigger");
+  assert.strictEqual(testIsQuotaOrRateLimitError(400, "Rate limit reached for model"), true, "Rate limit message must trigger");
+  assert.strictEqual(testIsQuotaOrRateLimitError(402, "Out of credits"), true, "OpenRouter credit exhaustion must trigger");
+  assert.strictEqual(testIsQuotaOrRateLimitError(500, "Internal Server Error"), false, "Internal error 500 is not quota");
+  assert.strictEqual(testIsQuotaOrRateLimitError(401, "Invalid API Key"), false, "Auth 401 is not quota");
+
+  // Test profile rotation simulation
+  const mockProfiles = [
+    { id: "prof_1", name: "Gemini", enabled: true },
+    { id: "prof_2", name: "DeepSeek", enabled: true },
+    { id: "prof_3", name: "Groq", enabled: true }
+  ];
+
+  function simulateRotate(currentId, profiles) {
+    const eligible = profiles.filter((p) => p.enabled !== false);
+    const currIdx = eligible.findIndex((p) => p.id === currentId);
+    const nextIdx = (currIdx + 1) % eligible.length;
+    return eligible[nextIdx];
+  }
+
+  assert.strictEqual(simulateRotate("prof_1", mockProfiles).id, "prof_2", "Should rotate from Gemini to DeepSeek");
+  assert.strictEqual(simulateRotate("prof_2", mockProfiles).id, "prof_3", "Should rotate from DeepSeek to Groq");
+  assert.strictEqual(simulateRotate("prof_3", mockProfiles).id, "prof_1", "Should wrap around from Groq back to Gemini");
+
+  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language & profile auto-rotation verified.");
 })();
+

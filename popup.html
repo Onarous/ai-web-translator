@@ -243,11 +243,37 @@
 
   <span id="toggleSettings" class="settings-toggle">Настройки API</span>
 
-  <div id="settingsPanel" class="settings-panel">
+    <!-- Profile Management Section -->
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label for="profileSelect" style="font-weight: 600; font-size: 11px; color: var(--primary);">Профиль настроек:</label>
+        <div style="display: flex; gap: 4px;">
+          <button id="addProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px;" title="Создать новый профиль">+ Новый</button>
+          <button id="deleteProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px; color: var(--danger);" title="Удалить текущий профиль">🗑️</button>
+        </div>
+      </div>
+
+      <select id="profileSelect" style="width: 100%; margin-bottom: 8px; font-weight: 500;">
+        <!-- Populated dynamically -->
+      </select>
+
+      <div class="field" style="margin-bottom: 8px;">
+        <label for="profileName">Название профиля:</label>
+        <input type="text" id="profileName" placeholder="Например: Google Gemini (Основной)">
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 6px; padding-top: 2px;">
+        <input type="checkbox" id="autoRotateCheckbox" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--primary);">
+        <label for="autoRotateCheckbox" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text);">
+          Авторотация при исчерпании лимита (429/Quota)
+        </label>
+      </div>
+    </div>
+
     <div class="field" style="margin-bottom: 10px;">
-      <label for="providerSelect">Провайдер ИИ (быстрый выбор):</label>
+      <label for="providerSelect">Заполнить из шаблона (быстрый пресет):</label>
       <select id="providerSelect">
-        <option value="" disabled selected>-- Выберите провайдера или свой API --</option>
+        <option value="" disabled selected>-- Выберите шаблон провайдера --</option>
         <option value="gemini">🌐 Google Gemini (gemini-3.5-flash-lite)</option>
         <option value="deepseek">🐋 DeepSeek API (deepseek-chat / V3)</option>
         <option value="openai">🤖 OpenAI (ChatGPT / gpt-4o-mini)</option>
@@ -288,7 +314,7 @@
 
     <div class="btn-group" style="margin-bottom: 0;">
       <button id="testApiBtn" class="btn-secondary" style="font-size: 11px; padding: 6px;">Проверить API</button>
-      <button id="saveSettingsBtn" class="btn-secondary" style="font-size: 11px; padding: 6px;">Сохранить</button>
+      <button id="saveSettingsBtn" class="btn-primary" style="font-size: 11px; padding: 6px;">Сохранить профиль</button>
     </div>
   </div>
 

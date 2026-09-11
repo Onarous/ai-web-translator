@@ -214,7 +214,10 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = D
       status: response.status,
       errorBody: errText
     });
-    throw new Error(`AI API error (${response.status}): ${errText || response.statusText}`);
+    const err = new Error(`AI API error (${response.status}): ${errText || response.statusText}`);
+    err.status = response.status;
+    err.errorBody = errText;
+    throw err;
   }
 
   const data = await response.json();
@@ -283,9 +286,131 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = D
  * @param {string} apiKey - Optional Bearer authentication token
  * @returns {Promise<string[]>} Translated Russian strings
  */
+/**
+ * Detects if an error is caused by rate limit or exhausted quota.
+ */
+function isQuotaOrRateLimitError(status, message = "", errorBody = "") {
+  if (status === 429) return true;
+  const combined = `${status} ${message} ${errorBody}`.toLowerCase();
+  return (
+    combined.includes("resource_exhausted") ||
+    combined.includes("insufficient_quota") ||
+    combined.includes("exceeded your current quota") ||
+    combined.includes("rate limit") ||
+    combined.includes("rate_limit") ||
+    combined.includes("quota exceeded") ||
+    combined.includes("out of credits") ||
+    combined.includes("credit balance is too low") ||
+    combined.includes("billing hard limit") ||
+    combined.includes("free tier limit") ||
+    combined.includes("too many requests")
+  );
+}
+
+/**
+ * Loads profiles and active profile configuration.
+ */
+async function getProfilesState() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(
+      {
+        profiles: [],
+        activeProfileId: "",
+        autoRotate: true,
+        apiUrl: DEFAULT_API_URL,
+        model: DEFAULT_MODEL,
+        apiKey: DEFAULT_API_KEY,
+        batchSize: 20
+      },
+      (res) => {
+        let profiles = Array.isArray(res.profiles) ? res.profiles : [];
+        if (profiles.length === 0) {
+          const defaultProf = {
+            id: "prof_default",
+            name: "Основной профиль",
+            apiUrl: res.apiUrl || DEFAULT_API_URL,
+            model: res.model || DEFAULT_MODEL,
+            apiKey: res.apiKey || DEFAULT_API_KEY,
+            batchSize: res.batchSize || 20,
+            enabled: true
+          };
+          profiles = [defaultProf];
+          const activeId = defaultProf.id;
+          chrome.storage.sync.set({ profiles, activeProfileId: activeId, autoRotate: res.autoRotate !== false });
+          resolve({
+            profiles,
+            activeProfileId: activeId,
+            autoRotate: res.autoRotate !== false,
+            activeProfile: defaultProf
+          });
+          return;
+        }
+
+        let activeId = res.activeProfileId;
+        let activeProf = profiles.find((p) => p.id === activeId);
+        if (!activeProf) {
+          activeProf = profiles[0];
+          activeId = activeProf.id;
+        }
+
+        resolve({
+          profiles,
+          activeProfileId: activeId,
+          autoRotate: res.autoRotate !== false,
+          activeProfile: activeProf
+        });
+      }
+    );
+  });
+}
+
+/**
+ * Rotates to the next available profile and saves it to chrome.storage.sync.
+ */
+async function rotateToNextProfile(currentProfileId) {
+  const state = await getProfilesState();
+  const eligible = state.profiles.filter((p) => p.enabled !== false);
+  if (eligible.length <= 1) {
+    return null;
+  }
+
+  const currentIndex = eligible.findIndex((p) => p.id === currentProfileId);
+  const nextIndex = (currentIndex + 1) % eligible.length;
+  const nextProfile = eligible[nextIndex];
+
+  if (!nextProfile || nextProfile.id === currentProfileId) {
+    return null;
+  }
+
+  await new Promise((resolve) => {
+    chrome.storage.sync.set(
+      {
+        activeProfileId: nextProfile.id,
+        apiUrl: nextProfile.apiUrl,
+        apiKey: nextProfile.apiKey,
+        model: nextProfile.model,
+        batchSize: nextProfile.batchSize
+      },
+      resolve
+    );
+  });
+
+  writeLog("WARN", "PROFILE_ROTATION", `Rotated active profile to "${nextProfile.name}" (${nextProfile.model}) due to API limit`, {
+    fromProfileId: currentProfileId,
+    toProfileId: nextProfile.id,
+    toProfileName: nextProfile.name,
+    toModel: nextProfile.model
+  });
+
+  return nextProfile;
+}
+
+/**
+ * Translates a batch of texts using cache with automatic failover rotation.
+ */
 async function translateBatch(texts, apiUrl, model, apiKey, sourceLang = DEFAULT_SOURCE_LANG, targetLang = DEFAULT_TARGET_LANG) {
   if (!Array.isArray(texts) || texts.length === 0) {
-    return [];
+    return { translations: [], rotatedTo: null };
   }
 
   await loadCache();
@@ -315,13 +440,50 @@ async function translateBatch(texts, apiUrl, model, apiKey, sourceLang = DEFAULT
   // 100% cache hit: return immediately without network call
   if (hitCount === texts.length) {
     writeLog("INFO", "CACHE_HIT", `All ${texts.length} nodes resolved from cache (${srcLang}->${tgtLang}, 0ms API latency, 0 quota spent)`);
-    return result;
+    return { translations: result, rotatedTo: null };
   }
 
   const uniqueMissing = Array.from(missingIndicesMap.keys());
   writeLog("INFO", "CACHE_STATS", `Cache resolved ${hitCount}/${texts.length} nodes (${Math.round((hitCount / texts.length) * 100)}%). Sending ${uniqueMissing.length} unique missing texts to AI (${srcLang}->${tgtLang}).`);
 
-  const aiTranslations = await requestAiTranslation(uniqueMissing, apiUrl, model, apiKey, srcLang, tgtLang);
+  // Load profiles configuration for auto-rotation
+  const profilesState = await getProfilesState();
+  let currentApiUrl = apiUrl || profilesState.activeProfile?.apiUrl || DEFAULT_API_URL;
+  let currentModel = model || profilesState.activeProfile?.model || DEFAULT_MODEL;
+  let currentApiKey = apiKey !== undefined ? apiKey : profilesState.activeProfile?.apiKey;
+  let currentProfileId = profilesState.activeProfileId;
+  let rotatedToName = null;
+
+  const maxAttempts = profilesState.autoRotate ? Math.max(1, profilesState.profiles.length) : 1;
+  let aiTranslations = null;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      aiTranslations = await requestAiTranslation(uniqueMissing, currentApiUrl, currentModel, currentApiKey, srcLang, tgtLang);
+      break;
+    } catch (err) {
+      lastError = err;
+      const isQuota = isQuotaOrRateLimitError(err.status, err.message, err.errorBody);
+      if (profilesState.autoRotate && isQuota && attempt < maxAttempts - 1) {
+        writeLog("WARN", "QUOTA_LIMIT", `API limit reached on ${currentModel}: ${err.message}. Rotating profile...`);
+        const nextProfile = await rotateToNextProfile(currentProfileId);
+        if (nextProfile) {
+          currentProfileId = nextProfile.id;
+          currentApiUrl = nextProfile.apiUrl;
+          currentModel = nextProfile.model;
+          currentApiKey = nextProfile.apiKey;
+          rotatedToName = nextProfile.name;
+          continue;
+        }
+      }
+      throw err;
+    }
+  }
+
+  if (!aiTranslations) {
+    throw lastError || new Error("Translation failed across all available profiles");
+  }
 
   for (let m = 0; m < uniqueMissing.length; m++) {
     const orig = uniqueMissing[m];
@@ -337,7 +499,7 @@ async function translateBatch(texts, apiUrl, model, apiKey, sourceLang = DEFAULT
   }
 
   scheduleSaveCache();
-  return result;
+  return { translations: result, rotatedTo: rotatedToName };
 }
 
 // Listen for messages from content scripts and popup
@@ -350,15 +512,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message?.type === "TRANSLATE_BATCH") {
     translateBatch(message.texts, message.apiUrl, message.model, message.apiKey, message.sourceLang, message.targetLang)
-      .then((translations) => {
-        sendResponse({ success: true, translations });
+      .then((res) => {
+        const translations = Array.isArray(res) ? res : res.translations;
+        const rotatedTo = res?.rotatedTo || null;
+        sendResponse({ success: true, translations, rotatedTo });
       })
       .catch((err) => {
         writeLog("ERROR", "TRANSLATE", `Batch translation failed: ${err.message}`);
-        console.error("[LocalAI Translator] Batch translation error:", err);
+        console.error("[AI Translator] Batch translation error:", err);
         sendResponse({ success: false, error: err.message });
       });
     return true; // Keep channel open for async response
+  }
+
+  if (message?.type === "GET_PROFILES_STATE") {
+    getProfilesState().then((state) => {
+      sendResponse(state);
+    });
+    return true;
+  }
+
+  if (message?.type === "ROTATE_PROFILE_NOW") {
+    rotateToNextProfile(message.currentProfileId).then((nextProf) => {
+      sendResponse({ success: !!nextProf, profile: nextProf });
+    });
+    return true;
   }
 
   if (message?.type === "GET_CACHE_STATS") {

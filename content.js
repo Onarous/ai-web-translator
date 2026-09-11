@@ -861,6 +861,10 @@
         throw new Error(response?.error || "Unknown background translation error");
       }
 
+      if (response.rotatedTo) {
+        updateWidgetUI("rotated", { rotatedTo: response.rotatedTo });
+      }
+
       const translations = response.translations;
       for (let j = 0; j < batch.length; j++) {
         const item = batch[j];
@@ -1288,6 +1292,9 @@
       }
       if (refreshDivider) refreshDivider.style.display = "block";
       label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
+    } else if (state === "rotated") {
+      badgeContainer.classList.add("busy");
+      label.textContent = `🔄 Лимит: ${data.rotatedTo || "Ротация"}`;
     } else if (state === "done" || (state === "active" && isTranslated)) {
       badgeContainer.classList.add("active");
       if (refreshBtn) refreshBtn.style.display = "inline-flex";

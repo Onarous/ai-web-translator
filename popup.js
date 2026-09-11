@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveSettingsBtn = document.getElementById("saveSettingsBtn");
   const cacheStats = document.getElementById("cacheStats");
   const clearCacheBtn = document.getElementById("clearCacheBtn");
+  const profileSelect = document.getElementById("profileSelect");
+  const profileNameInput = document.getElementById("profileName");
+  const autoRotateCheckbox = document.getElementById("autoRotateCheckbox");
+  const addProfileBtn = document.getElementById("addProfileBtn");
+  const deleteProfileBtn = document.getElementById("deleteProfileBtn");
   const providerSelect = document.getElementById("providerSelect");
   const sourceLangSelect = document.getElementById("sourceLang");
   const targetLangSelect = document.getElementById("targetLang");
@@ -22,6 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const langPairBadge = document.getElementById("langPairBadge");
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
+
+  let profiles = [];
+  let activeProfileId = "";
+  let autoRotate = true;
 
   const PROVIDERS = {
     gemini: {
@@ -131,31 +140,189 @@ document.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
-  // Load saved options
-  chrome.storage.sync.get(DEFAULTS, (items) => {
-    apiUrlInput.value = items.apiUrl || DEFAULTS.apiUrl;
-    apiKeyInput.value = items.apiKey || DEFAULTS.apiKey;
-    let savedModel = items.model || DEFAULTS.model;
-    if (savedModel === "gemini-2.0-flash") {
-      savedModel = "gemini-3.5-flash-lite";
+  function renderProfileSelect() {
+    if (!profileSelect) return;
+    profileSelect.innerHTML = "";
+    for (const prof of profiles) {
+      const opt = document.createElement("option");
+      opt.value = prof.id;
+      opt.textContent = prof.name || "Без названия";
+      if (prof.id === activeProfileId) {
+        opt.selected = true;
+      }
+      profileSelect.appendChild(opt);
     }
-    modelInput.value = savedModel;
-    batchSizeInput.value = items.batchSize || DEFAULTS.batchSize;
-    if (sourceLangSelect) sourceLangSelect.value = items.sourceLang || DEFAULTS.sourceLang;
-    if (targetLangSelect) targetLangSelect.value = items.targetLang || DEFAULTS.targetLang;
-    updateBadge(items.sourceLang || DEFAULTS.sourceLang, items.targetLang || DEFAULTS.targetLang);
+  }
 
-    const matched = detectProvider(items.apiUrl || DEFAULTS.apiUrl);
+  function loadProfileIntoForm(profileId) {
+    const prof = profiles.find((p) => p.id === profileId) || profiles[0];
+    if (!prof) return;
+    activeProfileId = prof.id;
+    if (profileSelect) profileSelect.value = prof.id;
+    if (profileNameInput) profileNameInput.value = prof.name || "";
+    if (apiUrlInput) apiUrlInput.value = prof.apiUrl || "";
+    if (apiKeyInput) apiKeyInput.value = prof.apiKey || "";
+    if (modelInput) modelInput.value = prof.model || "";
+    if (batchSizeInput) batchSizeInput.value = prof.batchSize || 20;
+
+    const matched = detectProvider(prof.apiUrl);
     if (matched && providerSelect) {
       providerSelect.value = matched;
       if (PROVIDERS[matched]) {
         apiKeyInput.placeholder = PROVIDERS[matched].keyPlaceholder;
       }
+    } else if (providerSelect) {
+      providerSelect.value = "";
+      apiKeyInput.placeholder = "sk-... или API-ключ";
     }
-  });
+  }
+
+  function saveCurrentFormToProfile() {
+    const prof = profiles.find((p) => p.id === activeProfileId);
+    if (!prof) return;
+    prof.name = profileNameInput ? (profileNameInput.value.trim() || prof.name || "Профиль") : prof.name;
+    prof.apiUrl = apiUrlInput.value.trim() || DEFAULTS.apiUrl;
+    prof.apiKey = apiKeyInput.value.trim();
+    prof.model = modelInput.value.trim() || DEFAULTS.model;
+    prof.batchSize = parseInt(batchSizeInput.value, 10) || 20;
+  }
+
+  function persistProfilesState(callback) {
+    const activeProf = profiles.find((p) => p.id === activeProfileId) || profiles[0] || {};
+    const dataToSave = {
+      profiles,
+      activeProfileId,
+      autoRotate: autoRotateCheckbox ? autoRotateCheckbox.checked : true,
+      apiUrl: activeProf.apiUrl || DEFAULTS.apiUrl,
+      apiKey: activeProf.apiKey || "",
+      model: activeProf.model || DEFAULTS.model,
+      batchSize: activeProf.batchSize || 20,
+      sourceLang: sourceLangSelect ? sourceLangSelect.value : DEFAULTS.sourceLang,
+      targetLang: targetLangSelect ? targetLangSelect.value : DEFAULTS.targetLang
+    };
+    chrome.storage.sync.set(dataToSave, () => {
+      renderProfileSelect();
+      if (typeof callback === "function") callback();
+    });
+  }
+
+  // Load saved options and profiles
+  chrome.storage.sync.get(
+    {
+      profiles: [],
+      activeProfileId: "",
+      autoRotate: true,
+      apiUrl: DEFAULTS.apiUrl,
+      apiKey: DEFAULTS.apiKey,
+      model: DEFAULTS.model,
+      batchSize: DEFAULTS.batchSize,
+      sourceLang: DEFAULTS.sourceLang,
+      targetLang: DEFAULTS.targetLang
+    },
+    (items) => {
+      profiles = Array.isArray(items.profiles) ? items.profiles : [];
+      if (profiles.length === 0) {
+        const initialProf = {
+          id: "prof_default",
+          name: "Основной профиль",
+          apiUrl: items.apiUrl || DEFAULTS.apiUrl,
+          apiKey: items.apiKey || DEFAULTS.apiKey,
+          model: items.model || DEFAULTS.model,
+          batchSize: items.batchSize || DEFAULTS.batchSize,
+          enabled: true
+        };
+        profiles = [initialProf];
+        activeProfileId = initialProf.id;
+        chrome.storage.sync.set({ profiles, activeProfileId });
+      } else {
+        activeProfileId = items.activeProfileId;
+        if (!activeProfileId || !profiles.some((p) => p.id === activeProfileId)) {
+          activeProfileId = profiles[0].id;
+        }
+      }
+
+      autoRotate = items.autoRotate !== false;
+      if (autoRotateCheckbox) {
+        autoRotateCheckbox.checked = autoRotate;
+      }
+
+      if (sourceLangSelect) sourceLangSelect.value = items.sourceLang || DEFAULTS.sourceLang;
+      if (targetLangSelect) targetLangSelect.value = items.targetLang || DEFAULTS.targetLang;
+      updateBadge(items.sourceLang || DEFAULTS.sourceLang, items.targetLang || DEFAULTS.targetLang);
+
+      renderProfileSelect();
+      loadProfileIntoForm(activeProfileId);
+    }
+  );
+
+  // Profile selector change
+  if (profileSelect) {
+    profileSelect.addEventListener("change", () => {
+      saveCurrentFormToProfile();
+      activeProfileId = profileSelect.value;
+      loadProfileIntoForm(activeProfileId);
+      persistProfilesState();
+      setStatus("Выбран профиль", "active");
+      setTimeout(() => setStatus("Готов к переводу"), 1500);
+    });
+  }
+
+  // Add profile button
+  if (addProfileBtn) {
+    addProfileBtn.addEventListener("click", () => {
+      saveCurrentFormToProfile();
+      const newId = "prof_" + Date.now();
+      const newProf = {
+        id: newId,
+        name: `Профиль ${profiles.length + 1}`,
+        apiUrl: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        apiKey: "",
+        model: "gemini-3.5-flash-lite",
+        batchSize: 20,
+        enabled: true
+      };
+      profiles.push(newProf);
+      activeProfileId = newId;
+      renderProfileSelect();
+      loadProfileIntoForm(newId);
+      persistProfilesState();
+      setStatus("Создан новый профиль", "active");
+      setTimeout(() => setStatus("Готов к переводу"), 1500);
+    });
+  }
+
+  // Delete profile button
+  if (deleteProfileBtn) {
+    deleteProfileBtn.addEventListener("click", () => {
+      if (profiles.length <= 1) {
+        setStatus("Нельзя удалить единственный профиль", "error");
+        setTimeout(() => setStatus("Готов к переводу"), 2000);
+        return;
+      }
+      const idx = profiles.findIndex((p) => p.id === activeProfileId);
+      if (idx !== -1) {
+        profiles.splice(idx, 1);
+        activeProfileId = profiles[0].id;
+        renderProfileSelect();
+        loadProfileIntoForm(activeProfileId);
+        persistProfilesState();
+        setStatus("Профиль удален", "active");
+        setTimeout(() => setStatus("Готов к переводу"), 1500);
+      }
+    });
+  }
+
+  // Auto-rotate checkbox change
+  if (autoRotateCheckbox) {
+    autoRotateCheckbox.addEventListener("change", () => {
+      persistProfilesState();
+      setStatus(autoRotateCheckbox.checked ? "Авторотация включена" : "Авторотация выключена", "active");
+      setTimeout(() => setStatus("Готов к переводу"), 1500);
+    });
+  }
 
   function saveLanguageSelection() {
-    const src = sourceLangSelect ? sourceLangSelect.value : "zh";
+    const src = sourceLangSelect ? sourceLangSelect.value : "auto";
     const tgt = targetLangSelect ? targetLangSelect.value : "ru";
     updateBadge(src, tgt);
     chrome.storage.sync.set({ sourceLang: src, targetLang: tgt });
@@ -192,24 +359,20 @@ document.addEventListener("DOMContentLoaded", () => {
         apiUrlInput.value = p.url;
         modelInput.value = p.model;
         apiKeyInput.placeholder = p.keyPlaceholder;
-        setStatus(`Выбран: ${p.name}`, "active");
+        if (profileNameInput && (!profileNameInput.value || profileNameInput.value.startsWith("Профиль") || profileNameInput.value === "Основной профиль")) {
+          profileNameInput.value = p.name;
+        }
+        setStatus(`Выбран шаблон: ${p.name}`, "active");
         setTimeout(() => setStatus("Готов к переводу"), 2000);
       }
     });
   }
 
-  // Save settings
+  // Save profile settings
   saveSettingsBtn.addEventListener("click", () => {
-    const newSettings = {
-      apiUrl: apiUrlInput.value.trim() || DEFAULTS.apiUrl,
-      apiKey: apiKeyInput.value.trim(),
-      model: modelInput.value.trim() || DEFAULTS.model,
-      batchSize: parseInt(batchSizeInput.value, 10) || DEFAULTS.batchSize,
-      sourceLang: sourceLangSelect ? sourceLangSelect.value : DEFAULTS.sourceLang,
-      targetLang: targetLangSelect ? targetLangSelect.value : DEFAULTS.targetLang
-    };
-    chrome.storage.sync.set(newSettings, () => {
-      setStatus("Настройки сохранены", "active");
+    saveCurrentFormToProfile();
+    persistProfilesState(() => {
+      setStatus("Профиль сохранен", "active");
       setTimeout(() => setStatus("Готов к переводу"), 2000);
     });
   });
