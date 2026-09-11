@@ -1,13 +1,10 @@
 @echo off
-chcp 65001 >nul
-title AI Translator - Установщик
+title AI Translator - Installer
 cd /d "%~dp0"
 
-echo Запуск установщика AI Translator...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0installer.ps1"
-
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo Ошибка при запуске PowerShell скрипта.
+    echo [ERROR] PowerShell script exited with code %ERRORLEVEL%.
     pause
 )

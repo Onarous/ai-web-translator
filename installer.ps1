@@ -158,8 +158,8 @@ function Show-Menu {
     Write-Color "  [0] Выход" Gray
     Write-Host ""
 
-    $choice = Read-Host "Введите номер (0-5) [по умолчанию 1]"
-    if ([string]::IsNullOrWhiteSpace($choice)) { $choice = "1" }
+    $rawChoice = Read-Host "Введите номер (0-5) [по умолчанию 1]"
+    $choice = if ([string]::IsNullOrWhiteSpace($rawChoice)) { "1" } else { $rawChoice.Trim() }
 
     switch ($choice) {
         "1" {
@@ -272,8 +272,12 @@ function Show-Menu {
 
     Write-Host ""
     if ($Mode -eq "interactive") {
-        Write-Color "Нажмите любую клавишу для завершения..." Gray
-        $null = [Console]::ReadKey($true)
+        try {
+            if (-not [Console]::IsInputRedirected) {
+                Write-Color "Нажмите любую клавишу для завершения..." Gray
+                $null = [Console]::ReadKey($true)
+            }
+        } catch {}
     }
 }
 
