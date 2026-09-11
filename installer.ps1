@@ -214,7 +214,7 @@ function Show-Menu {
 
             if ($selectedBrowser) {
                 Write-Color "Запуск $($selectedBrowser.Name) с флагом --load-extension..." Green
-                Start-Process $selectedBrowser.ExePath -ArgumentList @("--load-extension=$targetInstallDir", "https://github.com/XFN52/local-ai-web-translator")
+                Start-Process $selectedBrowser.ExePath -ArgumentList @("--load-extension=$targetInstallDir", "https://github.com/Onarous/ai-web-translator")
             } else {
                 Write-Color "Браузер не найден для прямого запуска." Red
             }

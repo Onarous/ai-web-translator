@@ -2,10 +2,10 @@
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![AI Providers](https://img.shields.io/badge/AI_Providers-Gemini_%7C_OpenAI_%7C_Claude_%7C_DeepSeek_%7C_Groq_%7C_Ollama-blueviolet)](https://github.com/XFN52/local-ai-web-translator)
-[![OpenAI & Claude API](https://img.shields.io/badge/API-OpenAI_%26_Claude_Compatible-orange)](https://github.com/XFN52/local-ai-web-translator)
+[![AI Providers](https://img.shields.io/badge/AI_Providers-Gemini_%7C_OpenAI_%7C_Claude_%7C_DeepSeek_%7C_Groq_%7C_Ollama-blueviolet)](https://github.com/Onarous/ai-web-translator)
+[![OpenAI & Claude API](https://img.shields.io/badge/API-OpenAI_%26_Claude_Compatible-orange)](https://github.com/Onarous/ai-web-translator)
 [![Tests Passing](https://img.shields.io/badge/Tests-100%25_Passed-brightgreen)](test_dom_translation.js)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/XFN52/local-ai-web-translator/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Onarous/ai-web-translator/pulls)
 
 > **High-performance, 100% DOM-safe browser extension** for seamless web translation powered by Cloud & Local Large Language Models (LLMs). Built specifically for modern dynamic Single Page Applications (SPAs), React/Vue virtual DOMs, and complex enterprise web interfaces.
 
@@ -63,9 +63,10 @@
 - **Smart Auto-Rotation on Rate Limit (429)**: If the active provider returns HTTP 429 (`RESOURCE_EXHAUSTED`, `insufficient_quota`, or `rate_limit_exceeded`), the extension automatically rotates to the next configured profile and retries translating seamlessly.
 - **JSON Import / Export**: One-click export (`📤 Экспорт JSON`) saves all profiles into a timestamped JSON file (`ai_translator_profiles_YYYY-MM-DD.json`). One-click import (`📥 Импорт JSON`) restores configurations across devices.
 
-### 4. 🌐 Auto-Detection & Multilingual Translation
-- Default source language is set to **Авто (AUTO)**, automatically detecting source language on the fly.
-- Supports translating into Russian (RU), English (EN), Chinese (ZH), Spanish (ES), German (DE), Japanese (JA), and French (FR).
+### 4. 🌐 Auto-Detection & Multilingual Translation (i18n)
+- **Automatic Extension UI Localization**: The popup interface, buttons, tabs, and notifications automatically adapt to the browser's language (`RU`, `EN`, `ZH`) via `chrome.i18n.getUILanguage()` / `navigator.language` with instant fallback.
+- **Smart Source Detection**: Default source language is set to **Авто (AUTO)**, automatically detecting original page language on the fly.
+- **Multi-Target Languages**: Supports translating into Russian (RU), English (EN), Chinese (ZH), Spanish (ES), German (DE), Japanese (JA), and French (FR).
 
 ### 5. 👁️ Viewport-Only Scan & Lazy Scroll
 - Translates only the content currently visible on the screen.
@@ -158,7 +159,7 @@ Viewport Check (isElementInViewport)
 
 1. **Клонируйте репозиторий**:
    ```bash
-   git clone https://github.com/XFN52/local-ai-web-translator.git
+   git clone https://github.com/Onarous/ai-web-translator.git
    ```
 2. **Откройте страницу расширений** в вашем Chromium-браузере:
    - Google Chrome: `chrome://extensions/`
@@ -220,6 +221,9 @@ Running test 5: Batch deduplication logic... [PASS]
 Running test 6: Restore original text fidelity via WeakMap... [PASS]
 Running test 7: Multi-profile schema validation & JSON import/export... [PASS]
 Running test 8: Anthropic Claude payload adapter format... [PASS]
+Running test 9: Profile auto-rotation on HTTP 429 quota exhaustion... [PASS]
+Running test 10: Automatic browser language localization (i18n)... [PASS]
+Running test 11: Installer packaging and manifest verification... [PASS]
 All tests passed successfully!
 ```
 
