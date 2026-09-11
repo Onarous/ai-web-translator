@@ -241,35 +241,9 @@
     <button id="restoreBtn" class="btn-secondary">Оригинал</button>
   </div>
 
-  <span id="toggleSettings" class="settings-toggle">Настройки API</span>
+  <span id="toggleSettings" class="settings-toggle">⚙️ Настройки API</span>
 
-    <!-- Profile Management Section -->
-    <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <label for="profileSelect" style="font-weight: 600; font-size: 11px; color: var(--primary);">Профиль настроек:</label>
-        <div style="display: flex; gap: 4px;">
-          <button id="addProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px;" title="Создать новый профиль">+ Новый</button>
-          <button id="deleteProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px; color: var(--danger);" title="Удалить текущий профиль">🗑️</button>
-        </div>
-      </div>
-
-      <select id="profileSelect" style="width: 100%; margin-bottom: 8px; font-weight: 500;">
-        <!-- Populated dynamically -->
-      </select>
-
-      <div class="field" style="margin-bottom: 8px;">
-        <label for="profileName">Название профиля:</label>
-        <input type="text" id="profileName" placeholder="Например: Google Gemini (Основной)">
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 6px; padding-top: 2px;">
-        <input type="checkbox" id="autoRotateCheckbox" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--primary);">
-        <label for="autoRotateCheckbox" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text);">
-          Авторотация при исчерпании лимита (429/Quota)
-        </label>
-      </div>
-    </div>
-
+  <div id="settingsPanel" class="settings-panel">
     <div class="field" style="margin-bottom: 10px;">
       <label for="providerSelect">Заполнить из шаблона (быстрый пресет):</label>
       <select id="providerSelect">
@@ -305,6 +279,33 @@
     <div class="field">
       <label for="batchSize">Размер пачки (узлов):</label>
       <input type="number" id="batchSize" min="5" max="50" value="20">
+    </div>
+
+    <!-- Profile Management Section (внизу под размером пачки) -->
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-top: 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label for="profileSelect" style="font-weight: 600; font-size: 11px; color: var(--primary); margin-bottom: 0;">Профиль настроек:</label>
+        <div style="display: flex; gap: 4px;">
+          <button id="addProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px;" title="Создать новый профиль">+ Новый</button>
+          <button id="deleteProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px; color: var(--danger);" title="Удалить текущий профиль">🗑️</button>
+        </div>
+      </div>
+
+      <select id="profileSelect" style="width: 100%; margin-bottom: 8px; font-weight: 500;">
+        <!-- Populated dynamically -->
+      </select>
+
+      <div class="field" style="margin-bottom: 8px;">
+        <label for="profileName">Название профиля:</label>
+        <input type="text" id="profileName" placeholder="Например: Google Gemini (Основной)">
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 6px; padding-top: 2px;">
+        <input type="checkbox" id="autoRotateCheckbox" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--primary);">
+        <label for="autoRotateCheckbox" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text); margin-bottom: 0;">
+          Авторотация при исчерпании лимита (429/Quota)
+        </label>
+      </div>
     </div>
 
     <div class="field" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
