@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "AI Translator",
+    "description": "扩展名称"
+  },
+  "extDesc": {
+    "message": "基于大语言模型的无损网页翻译扩展，100% 保护 DOM 结构与组件状态。",
+    "description": "扩展描述"
+  }
+}

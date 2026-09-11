@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "AI Translator",
+    "description": "The name of the extension"
+  },
+  "extDesc": {
+    "message": "In-place web page translation using AI with 100% DOM structure preservation.",
+    "description": "Description of the extension"
+  }
+}

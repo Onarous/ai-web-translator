@@ -3,6 +3,11 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Localize all static HTML elements based on browser language
+  if (typeof I18N !== "undefined" && typeof I18N.localizeDOM === "function") {
+    I18N.localizeDOM(document);
+  }
+
   const apiUrlInput = document.getElementById("apiUrl");
   const apiKeyInput = document.getElementById("apiKey");
   const modelInput = document.getElementById("model");
@@ -40,58 +45,58 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Google Gemini Cloud",
       url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       model: "gemini-3.5-flash-lite",
-      keyPlaceholder: "AIzaSy... (Google AI Studio)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyGemini") : "AIzaSy... (Google AI Studio)"
     },
     deepseek: {
       name: "DeepSeek API",
       url: "https://api.deepseek.com/chat/completions",
       model: "deepseek-chat",
-      keyPlaceholder: "sk-... (DeepSeek Platform)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyDeepSeek") : "sk-... (DeepSeek Platform)"
     },
     openai: {
       name: "OpenAI",
       url: "https://api.openai.com/v1/chat/completions",
       model: "gpt-4o-mini",
-      keyPlaceholder: "sk-proj-... (OpenAI Platform)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyOpenAI") : "sk-proj-... (OpenAI Platform)"
     },
     groq: {
       name: "Groq Cloud",
       url: "https://api.groq.com/openai/v1/chat/completions",
       model: "llama-3.3-70b-versatile",
-      keyPlaceholder: "gsk_... (Groq Console)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyGroq") : "gsk_... (Groq Console)"
     },
     openrouter: {
       name: "OpenRouter",
       url: "https://openrouter.ai/api/v1/chat/completions",
       model: "deepseek/deepseek-chat",
-      keyPlaceholder: "sk-or-v1-... (OpenRouter Keys)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyOpenRouter") : "sk-or-v1-... (OpenRouter Keys)"
     },
     anthropic: {
       name: "Anthropic Claude",
       url: "https://api.anthropic.com/v1/messages",
       model: "claude-3-5-haiku-20241022",
-      keyPlaceholder: "sk-ant-... (Anthropic Console)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyAnthropic") : "sk-ant-... (Anthropic Console)"
     },
     mistral: {
       name: "Mistral AI",
       url: "https://api.mistral.ai/v1/chat/completions",
       model: "mistral-small-latest",
-      keyPlaceholder: "API-ключ Mistral Console"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyMistral") : "API-ключ Mistral Console"
     },
     ollama: {
-      name: "Ollama (Локально)",
+      name: "Ollama",
       url: "http://localhost:11434/v1/chat/completions",
       model: "qwen2.5:latest",
-      keyPlaceholder: "Не требуется (локальный сервер)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyOllama") : "Не требуется (локальный сервер)"
     },
     lmstudio: {
-      name: "LM Studio (Локально)",
+      name: "LM Studio",
       url: "http://localhost:1234/v1/chat/completions",
       model: "local-model",
-      keyPlaceholder: "Не требуется (локальный сервер)"
+      keyPlaceholder: typeof I18N !== "undefined" ? I18N.t("keyLmstudio") : "Не требуется (локальный сервер)"
     },
     local8045: {
-      name: "Локальный прокси 8045",
+      name: "Local Proxy (8045)",
       url: "http://localhost:8045/v1/chat/completions",
       model: "gemini-3.8-flash-low",
       keyPlaceholder: "sk-..."
@@ -107,6 +112,10 @@ document.addEventListener("DOMContentLoaded", () => {
     targetLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.targetLang || "ru") : "ru"
   };
 
+  function tr(key, params = {}) {
+    return typeof I18N !== "undefined" ? I18N.t(key, params) : key;
+  }
+
   function updateBadge(src, tgt) {
     if (langPairBadge) {
       langPairBadge.textContent = `${(src || "auto").toUpperCase()} → ${(tgt || "ru").toUpperCase()}`;
@@ -117,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cacheStats) return;
     chrome.runtime.sendMessage({ type: "GET_CACHE_STATS" }, (res) => {
       if (!chrome.runtime.lastError && res) {
-        cacheStats.textContent = `Кэш: ${res.size || 0} записей`;
+        cacheStats.textContent = tr("cacheStats", { n: res.size || 0 });
       }
     });
   }
@@ -176,14 +185,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (providerSelect) {
       providerSelect.value = "";
-      apiKeyInput.placeholder = "sk-... или API-ключ";
+      apiKeyInput.placeholder = tr("keyDefault");
     }
   }
 
   function saveCurrentFormToProfile() {
     const prof = profiles.find((p) => p.id === activeProfileId);
     if (!prof) return;
-    prof.name = profileNameInput ? (profileNameInput.value.trim() || prof.name || "Профиль") : prof.name;
+    prof.name = profileNameInput ? (profileNameInput.value.trim() || prof.name || tr("profileNumbered", { n: 1 })) : prof.name;
     prof.apiUrl = apiUrlInput.value.trim() || DEFAULTS.apiUrl;
     prof.apiKey = apiKeyInput.value.trim();
     prof.model = modelInput.value.trim() || DEFAULTS.model;
@@ -227,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (profiles.length === 0) {
         const initialProf = {
           id: "prof_default",
-          name: "Основной профиль",
+          name: tr("defaultProfileName"),
           apiUrl: items.apiUrl || DEFAULTS.apiUrl,
           apiKey: items.apiKey || DEFAULTS.apiKey,
           model: items.model || DEFAULTS.model,
@@ -265,8 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
       activeProfileId = profileSelect.value;
       loadProfileIntoForm(activeProfileId);
       persistProfilesState();
-      setStatus("Выбран профиль", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 1500);
+      setStatus(tr("profileSelected"), "active");
+      setTimeout(() => setStatus(tr("statusReady")), 1500);
     });
   }
 
@@ -277,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const newId = "prof_" + Date.now();
       const newProf = {
         id: newId,
-        name: `Профиль ${profiles.length + 1}`,
+        name: tr("profileNumbered", { n: profiles.length + 1 }),
         apiUrl: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         apiKey: "",
         model: "gemini-3.5-flash-lite",
@@ -289,8 +298,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderProfileSelect();
       loadProfileIntoForm(newId);
       persistProfilesState();
-      setStatus("Создан новый профиль", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 1500);
+      setStatus(tr("profileCreated"), "active");
+      setTimeout(() => setStatus(tr("statusReady")), 1500);
     });
   }
 
@@ -298,8 +307,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (deleteProfileBtn) {
     deleteProfileBtn.addEventListener("click", () => {
       if (profiles.length <= 1) {
-        setStatus("Нельзя удалить единственный профиль", "error");
-        setTimeout(() => setStatus("Готов к переводу"), 2000);
+        setStatus(tr("cannotDeleteOnlyProfile"), "error");
+        setTimeout(() => setStatus(tr("statusReady")), 2000);
         return;
       }
       const idx = profiles.findIndex((p) => p.id === activeProfileId);
@@ -309,8 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderProfileSelect();
         loadProfileIntoForm(activeProfileId);
         persistProfilesState();
-        setStatus("Профиль удален", "active");
-        setTimeout(() => setStatus("Готов к переводу"), 1500);
+        setStatus(tr("profileDeleted"), "active");
+        setTimeout(() => setStatus(tr("statusReady")), 1500);
       }
     });
   }
@@ -337,8 +346,8 @@ document.addEventListener("DOMContentLoaded", () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      setStatus(`Экспортировано ${profiles.length} профилей`, "active");
-      setTimeout(() => setStatus("Готов к переводу"), 2000);
+      setStatus(tr("exportedProfiles", { n: profiles.length }), "active");
+      setTimeout(() => setStatus(tr("statusReady")), 2000);
     });
   }
 
@@ -368,16 +377,16 @@ document.addEventListener("DOMContentLoaded", () => {
               autoRotateCheckbox.checked = parsed.autoRotate;
             }
           } else {
-            throw new Error("Неверный формат JSON (ожидался список профилей)");
+            throw new Error(tr("invalidJsonFormat"));
           }
 
           if (incomingProfiles.length === 0) {
-            throw new Error("Файл не содержит профилей");
+            throw new Error(tr("emptyProfilesFile"));
           }
 
           const sanitized = incomingProfiles.map((p, idx) => ({
             id: p.id || ("prof_" + Date.now() + "_" + idx),
-            name: p.name || `Профиль ${idx + 1}`,
+            name: p.name || tr("profileNumbered", { n: idx + 1 }),
             apiUrl: p.apiUrl || DEFAULTS.apiUrl,
             apiKey: p.apiKey || "",
             model: p.model || DEFAULTS.model,
@@ -393,13 +402,13 @@ document.addEventListener("DOMContentLoaded", () => {
           renderProfileSelect();
           loadProfileIntoForm(activeProfileId);
           persistProfilesState(() => {
-            setStatus(`Импортировано: ${profiles.length} профилей`, "active");
-            setTimeout(() => setStatus("Готов к переводу"), 2500);
+            setStatus(tr("importedProfiles", { n: profiles.length }), "active");
+            setTimeout(() => setStatus(tr("statusReady")), 2500);
           });
         } catch (err) {
           console.error("[AI Translator] Import error:", err);
-          setStatus(`Ошибка импорта: ${err.message}`, "error");
-          setTimeout(() => setStatus("Готов к переводу"), 3500);
+          setStatus(tr("importError", { msg: err.message }), "error");
+          setTimeout(() => setStatus(tr("statusReady")), 3500);
         }
       };
       reader.readAsText(file);
@@ -410,8 +419,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (autoRotateCheckbox) {
     autoRotateCheckbox.addEventListener("change", () => {
       persistProfilesState();
-      setStatus(autoRotateCheckbox.checked ? "Авторотация включена" : "Авторотация выключена", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 1500);
+      setStatus(autoRotateCheckbox.checked ? tr("autoRotateEnabled") : tr("autoRotateDisabled"), "active");
+      setTimeout(() => setStatus(tr("statusReady")), 1500);
     });
   }
 
@@ -453,11 +462,11 @@ document.addEventListener("DOMContentLoaded", () => {
         apiUrlInput.value = p.url;
         modelInput.value = p.model;
         apiKeyInput.placeholder = p.keyPlaceholder;
-        if (profileNameInput && (!profileNameInput.value || profileNameInput.value.startsWith("Профиль") || profileNameInput.value === "Основной профиль")) {
+        if (profileNameInput && (!profileNameInput.value || profileNameInput.value.startsWith("Профиль") || profileNameInput.value.startsWith("Profile") || profileNameInput.value === tr("defaultProfileName"))) {
           profileNameInput.value = p.name;
         }
-        setStatus(`Выбран шаблон: ${p.name}`, "active");
-        setTimeout(() => setStatus("Готов к переводу"), 2000);
+        setStatus(tr("templateSelected", { name: p.name }), "active");
+        setTimeout(() => setStatus(tr("statusReady")), 2000);
       }
     });
   }
@@ -466,8 +475,8 @@ document.addEventListener("DOMContentLoaded", () => {
   saveSettingsBtn.addEventListener("click", () => {
     saveCurrentFormToProfile();
     persistProfilesState(() => {
-      setStatus("Профиль сохранен", "active");
-      setTimeout(() => setStatus("Готов к переводу"), 2000);
+      setStatus(tr("profileSaved"), "active");
+      setTimeout(() => setStatus(tr("statusReady")), 2000);
     });
   });
 
@@ -476,9 +485,9 @@ document.addEventListener("DOMContentLoaded", () => {
     clearCacheBtn.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "CLEAR_CACHE" }, (res) => {
         if (!chrome.runtime.lastError && res && res.success) {
-          if (cacheStats) cacheStats.textContent = "Кэш: 0 записей";
-          setStatus("Кэш очищен", "active");
-          setTimeout(() => setStatus("Готов к переводу"), 2000);
+          if (cacheStats) cacheStats.textContent = tr("cacheStats", { n: 0 });
+          setStatus(tr("cacheCleared"), "active");
+          setTimeout(() => setStatus(tr("statusReady")), 2000);
         }
       });
     });
@@ -491,16 +500,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const url = apiUrlInput.value.trim() || DEFAULTS.apiUrl;
     const key = apiKeyInput.value.trim() || DEFAULTS.apiKey;
     const model = modelInput.value.trim() || DEFAULTS.model;
-    setStatus("Проверка связи с API...");
+    setStatus(tr("testingApi"));
     chrome.runtime.sendMessage({ type: "CHECK_CONNECTION", apiUrl: url, apiKey: key, model }, (res) => {
       if (chrome.runtime.lastError) {
-        setStatus("Ошибка фонового сервиса", "error");
+        setStatus(tr("bgServiceError"), "error");
         return;
       }
       if (res && res.ok) {
-        setStatus(`API доступен (HTTP ${res.status})`, "active");
+        setStatus(tr("apiAvailable", { status: res.status }), "active");
       } else {
-        setStatus("API недоступен: " + (res?.error || "проверьте порт"), "error");
+        setStatus(tr("apiUnavailable", { err: res?.error || "check port" }), "error");
       }
     });
   });
@@ -509,21 +518,20 @@ document.addEventListener("DOMContentLoaded", () => {
   function sendTabAction(actionName) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs || tabs.length === 0) {
-        setStatus("Вкладка не найдена", "error");
+        setStatus(tr("tabNotFound"), "error");
         return;
       }
       const tabId = tabs[0].id;
-      setStatus("Отправка запроса на страницу...");
 
       chrome.tabs.sendMessage(tabId, { action: actionName }, (response) => {
         if (chrome.runtime.lastError) {
-          setStatus("Обновите страницу для подключения скрипта", "error");
+          setStatus(tr("reloadPagePrompt"), "error");
           return;
         }
         if (actionName === "TRANSLATE_PAGE") {
-          setStatus("Перевод запущен на странице", "active");
+          setStatus(tr("translationStarted"), "active");
         } else if (actionName === "RESTORE_ORIGINAL") {
-          setStatus(`Восстановлено узлов: ${response?.restoredCount || 0}`, "active");
+          setStatus(tr("nodesRestored", { n: response?.restoredCount || 0 }), "active");
         }
       });
     });
@@ -538,9 +546,9 @@ document.addEventListener("DOMContentLoaded", () => {
       chrome.tabs.sendMessage(tabs[0].id, { action: "GET_STATUS" }, (res) => {
         if (!chrome.runtime.lastError && res) {
           if (res.isTranslating) {
-            setStatus("Идет перевод страницы...", "active");
+            setStatus(tr("translatingPage"), "active");
           } else if (res.isTranslated) {
-            setStatus(`Страница переведена (${res.activeNodesCount} узлов)`, "active");
+            setStatus(tr("pageTranslated", { n: res.activeNodesCount }), "active");
           }
         }
       });
@@ -553,7 +561,7 @@ document.addEventListener("DOMContentLoaded", () => {
     downloadLogsBtn.addEventListener("click", () => {
       chrome.storage.local.get({ logs: [] }, (res) => {
         const text = (res.logs || []).map((l) => `[${l.timestamp}] [${l.level}] [${l.tag}] ${l.message} ${l.meta ? JSON.stringify(l.meta) : ""}`).join("\n");
-        const blob = new Blob([text || "Логи отсутствуют\n"], { type: "text/plain;charset=utf-8" });
+        const blob = new Blob([text || tr("noLogs")], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

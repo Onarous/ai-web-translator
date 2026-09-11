@@ -1091,6 +1091,10 @@
   let shadowRoot = null;
   let widgetContainer = null;
 
+  function tr(key, params = {}) {
+    return (typeof I18N !== "undefined" && typeof I18N.t === "function") ? I18N.t(key, params) : key;
+  }
+
   function getPairLabel() {
     const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
@@ -1110,7 +1114,7 @@
 
     const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
-    const origLabel = src === "AUTO" ? "Оригинал" : `Оригинал (${src})`;
+    const origLabel = src === "AUTO" ? tr("widgetOriginal") : tr("widgetOriginalWithLang", { lang: src });
     shadowRoot = widgetContainer.attachShadow({ mode: "closed" });
     shadowRoot.innerHTML = `
       <style>
@@ -1227,16 +1231,16 @@
         }
       </style>
       <div id="badgeContainer" class="badge-container active">
-        <div id="actionBtn" class="badge-main" title="Вернуть оригинальный текст страницы">
+        <div id="actionBtn" class="badge-main" title="${tr('widgetActionBtnTitleDone')}">
           <span id="dot" class="dot"></span>
           <span id="label">${origLabel}</span>
         </div>
         <div id="refreshDivider" class="badge-divider"></div>
-        <div id="refreshBtn" class="badge-refresh" title="Обновить перевод страницы">
+        <div id="refreshBtn" class="badge-refresh" title="${tr('widgetRefreshBtnTitle')}">
           <span id="refreshIcon" class="refresh-icon">⟳</span>
         </div>
         <div class="badge-divider"></div>
-        <div id="closeBtn" class="badge-close" title="Скрыть панель">✕</div>
+        <div id="closeBtn" class="badge-close" title="${tr('widgetCloseBtnTitle')}">✕</div>
       </div>
     `;
 
@@ -1282,7 +1286,7 @@
     if (dot) dot.className = "dot";
     const src = ((cachedSettings && cachedSettings.sourceLang) || "auto").toUpperCase();
     const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
-    const origLabel = src === "AUTO" ? "Оригинал" : `Оригинал (${src})`;
+    const origLabel = src === "AUTO" ? tr("widgetOriginal") : tr("widgetOriginalWithLang", { lang: src });
 
     if (state === "translating") {
       badgeContainer.classList.add("busy");
@@ -1291,21 +1295,21 @@
         refreshBtn.classList.add("spinning");
       }
       if (refreshDivider) refreshDivider.style.display = "block";
-      label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
+      label.textContent = tr("widgetTranslating", { curr: data.current || 0, total: data.total || 0 });
     } else if (state === "rotated") {
       badgeContainer.classList.add("busy");
-      label.textContent = `🔄 Лимит: ${data.rotatedTo || "Ротация"}`;
+      label.textContent = tr("widgetRotated", { target: data.rotatedTo || "" });
     } else if (state === "done" || (state === "active" && isTranslated)) {
       badgeContainer.classList.add("active");
       if (refreshBtn) refreshBtn.style.display = "inline-flex";
       if (refreshDivider) refreshDivider.style.display = "block";
       label.textContent = origLabel;
-      if (actionBtn) actionBtn.title = "Вернуть оригинальный текст страницы";
+      if (actionBtn) actionBtn.title = tr("widgetActionBtnTitleDone");
     } else if (state === "refreshed") {
       badgeContainer.classList.add("active");
       if (refreshBtn) refreshBtn.style.display = "inline-flex";
       if (refreshDivider) refreshDivider.style.display = "block";
-      label.textContent = "✓ Обновлено";
+      label.textContent = tr("widgetRefreshed");
       setTimeout(() => {
         if (label && isTranslated) {
           label.textContent = origLabel;
@@ -1316,23 +1320,23 @@
       if (dot) dot.classList.add("idle");
       if (refreshBtn) refreshBtn.style.display = "none";
       if (refreshDivider) refreshDivider.style.display = "none";
-      label.textContent = `Перевести (${tgt})`;
-      if (actionBtn) actionBtn.title = "Перевести страницу";
+      label.textContent = tr("widgetTranslateTo", { lang: tgt });
+      if (actionBtn) actionBtn.title = tr("widgetActionBtnTitleIdle");
     } else if (state === "no_text") {
-      label.textContent = "Нет текста";
+      label.textContent = tr("widgetNoText");
       setTimeout(() => {
         if (label) {
           if (isTranslated) {
             label.textContent = origLabel;
           } else {
-            label.textContent = `Перевести (${tgt})`;
+            label.textContent = tr("widgetTranslateTo", { lang: tgt });
           }
         }
       }, 2000);
     } else if (state === "error") {
       badgeContainer.classList.add("error");
-      label.textContent = "Ошибка API";
-      if (actionBtn) actionBtn.title = data.error || "Ошибка подключения";
+      label.textContent = tr("widgetApiError");
+      if (actionBtn) actionBtn.title = data.error || tr("widgetConnectError");
       setTimeout(() => {
         if (isTranslated) {
           badgeContainer.className = "badge-container active";
@@ -1340,7 +1344,7 @@
         } else {
           badgeContainer.className = "badge-container idle";
           if (dot) dot.classList.add("idle");
-          label.textContent = `Перевести (${tgt})`;
+          label.textContent = tr("widgetTranslateTo", { lang: tgt });
         }
       }, 4000);
     } else {
@@ -1350,7 +1354,7 @@
       } else {
         badgeContainer.classList.add("idle");
         if (dot) dot.classList.add("idle");
-        label.textContent = `Перевести (${tgt})`;
+        label.textContent = tr("widgetTranslateTo", { lang: tgt });
       }
     }
   }

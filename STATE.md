@@ -202,3 +202,18 @@
 - [LICENSE:1-22](file:///c:/Users/site/Documents/antigravity/gallant-heisenberg/LICENSE#L1-L22): добавлена лицензия MIT Copyright (c) 2026 XFN52.
 - [README.md:1-143](file:///c:/Users/site/Documents/antigravity/gallant-heisenberg/README.md#L1-L143): структура обогащена бейджами, трехъязычными поисковыми маркерами, таблицей преимуществ, ASCII-схемой потока данных и инструкциями.
 - `node test_dom_translation.js` завершился с кодом 0 (100% прохождение тестов).
+
+## 2026-09-11 — Задача 13
+Формулировка задачи: "сделай, что бы текст в расширении был такого же языка как язык в браузере"
+
+### Пункты:
+1. [x] Создать модуль интернационализации `i18n.js` с автоматической детекцией языка интерфейса браузера (`chrome.i18n.getUILanguage()` / `navigator.language`) и словарями перевода (RU, EN, ZH).
+2. [x] Добавить стандартную структуру локализации WebExtension `_locales/en/messages.json`, `_locales/ru/messages.json`, `_locales/zh_CN/messages.json` и обновить `manifest.json` (`default_locale: "en"`).
+3. [x] Интегрировать автолокализацию в `popup.html` (`data-i18n`, `data-i18n-placeholder`, `data-i18n-title`, `data-i18n-opt`) и `popup.js` (`tr(...)` для всех уведомлений, статусов, экспорта/импорта).
+4. [x] Локализовать плавающий виджет на странице в `content.js` (кнопки «Оригинал»/«Original», подсказки, индикаторы статуса перевода и ротации).
+5. [x] Добавить модульные тесты в `test_dom_translation.js` для словарей, подстановки параметров и симуляции DOM-локализации.
+
+### Выясненные факты и проверки:
+- [i18n.js](file:///d:/перевод/local-ai-web-translator/i18n.js): полнофункциональный модуль i18n с поддержкой языков RU, EN, ZH и откатом на EN при других языках.
+- [_locales/](file:///d:/перевод/local-ai-web-translator/_locales): стандартные манифестные локали для Chrome.
+- Тест `node test_dom_translation.js` успешно пройден (все 10 наборов ассертов, код выхода 0).

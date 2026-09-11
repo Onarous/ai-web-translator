@@ -205,49 +205,49 @@
 
   <div class="lang-row">
     <div class="lang-col">
-      <label for="sourceLang">С какого:</label>
+      <label for="sourceLang" data-i18n="sourceLangLabel">С какого:</label>
       <select id="sourceLang">
-        <option value="auto" selected>Автоопределение</option>
-        <option value="zh">Китайский (ZH)</option>
-        <option value="en">Английский (EN)</option>
-        <option value="ja">Японский (JA)</option>
-        <option value="ko">Корейский (KO)</option>
-        <option value="de">Немецкий (DE)</option>
-        <option value="fr">Французский (FR)</option>
-        <option value="es">Испанский (ES)</option>
-        <option value="it">Итальянский (IT)</option>
-        <option value="ru">Русский (RU)</option>
+        <option value="auto" data-i18n-opt="lang_auto" selected>Автоопределение</option>
+        <option value="zh" data-i18n-opt="lang_zh">Китайский (ZH)</option>
+        <option value="en" data-i18n-opt="lang_en">Английский (EN)</option>
+        <option value="ja" data-i18n-opt="lang_ja">Японский (JA)</option>
+        <option value="ko" data-i18n-opt="lang_ko">Корейский (KO)</option>
+        <option value="de" data-i18n-opt="lang_de">Немецкий (DE)</option>
+        <option value="fr" data-i18n-opt="lang_fr">Французский (FR)</option>
+        <option value="es" data-i18n-opt="lang_es">Испанский (ES)</option>
+        <option value="it" data-i18n-opt="lang_it">Итальянский (IT)</option>
+        <option value="ru" data-i18n-opt="lang_ru">Русский (RU)</option>
       </select>
     </div>
-    <button id="swapLangsBtn" type="button" title="Поменять местами" class="btn-swap">⇄</button>
+    <button id="swapLangsBtn" type="button" data-i18n-title="swapLangsTitle" title="Поменять местами" class="btn-swap">⇄</button>
     <div class="lang-col">
-      <label for="targetLang">На какой:</label>
+      <label for="targetLang" data-i18n="targetLangLabel">На какой:</label>
       <select id="targetLang">
-        <option value="ru" selected>Русский (RU)</option>
-        <option value="en">Английский (EN)</option>
-        <option value="zh">Китайский (ZH)</option>
-        <option value="de">Немецкий (DE)</option>
-        <option value="fr">Французский (FR)</option>
-        <option value="es">Испанский (ES)</option>
-        <option value="ja">Японский (JA)</option>
-        <option value="ko">Корейский (KO)</option>
-        <option value="it">Итальянский (IT)</option>
+        <option value="ru" data-i18n-opt="lang_ru" selected>Русский (RU)</option>
+        <option value="en" data-i18n-opt="lang_en">Английский (EN)</option>
+        <option value="zh" data-i18n-opt="lang_zh">Китайский (ZH)</option>
+        <option value="de" data-i18n-opt="lang_de">Немецкий (DE)</option>
+        <option value="fr" data-i18n-opt="lang_fr">Французский (FR)</option>
+        <option value="es" data-i18n-opt="lang_es">Испанский (ES)</option>
+        <option value="ja" data-i18n-opt="lang_ja">Японский (JA)</option>
+        <option value="ko" data-i18n-opt="lang_ko">Корейский (KO)</option>
+        <option value="it" data-i18n-opt="lang_it">Итальянский (IT)</option>
       </select>
     </div>
   </div>
 
   <div class="btn-group">
-    <button id="translateBtn" class="btn-primary">Перевести</button>
-    <button id="restoreBtn" class="btn-secondary">Оригинал</button>
+    <button id="translateBtn" class="btn-primary" data-i18n="translateBtn">Перевести</button>
+    <button id="restoreBtn" class="btn-secondary" data-i18n="restoreBtn">Оригинал</button>
   </div>
 
-  <span id="toggleSettings" class="settings-toggle">⚙️ Настройки API</span>
+  <span id="toggleSettings" class="settings-toggle" data-i18n="toggleSettings">⚙️ Настройки API</span>
 
   <div id="settingsPanel" class="settings-panel">
     <div class="field" style="margin-bottom: 10px;">
-      <label for="providerSelect">Заполнить из шаблона (быстрый пресет):</label>
+      <label for="providerSelect" data-i18n="providerSelectLabel">Заполнить из шаблона (быстрый пресет):</label>
       <select id="providerSelect">
-        <option value="" disabled selected>-- Выберите шаблон провайдера --</option>
+        <option value="" disabled selected data-i18n-opt="providerSelectDefault">-- Выберите шаблон провайдера --</option>
         <option value="gemini">🌐 Google Gemini (gemini-3.5-flash-lite)</option>
         <option value="deepseek">🐋 DeepSeek API (deepseek-chat / V3)</option>
         <option value="openai">🤖 OpenAI (ChatGPT / gpt-4o-mini)</option>
@@ -262,32 +262,32 @@
     </div>
 
     <div class="field">
-      <label for="apiUrl">API URL:</label>
-      <input type="text" id="apiUrl" placeholder="http://localhost:8045/v1/chat/completions">
+      <label for="apiUrl" data-i18n="apiUrlLabel">API URL:</label>
+      <input type="text" id="apiUrl" data-i18n-placeholder="apiUrlPlaceholder" placeholder="http://localhost:8045/v1/chat/completions">
     </div>
 
     <div class="field">
-      <label for="apiKey">API Key (Ключ авторизации):</label>
-      <input type="password" id="apiKey" placeholder="sk-... или AIzaSy...">
+      <label for="apiKey" data-i18n="apiKeyLabel">API Key (Ключ авторизации):</label>
+      <input type="password" id="apiKey" data-i18n-placeholder="apiKeyPlaceholder" placeholder="sk-... или AIzaSy...">
     </div>
 
     <div class="field">
-      <label for="model">Модель ИИ:</label>
-      <input type="text" id="model" placeholder="Название модели (например, deepseek-chat)">
+      <label for="model" data-i18n="modelLabel">Модель ИИ:</label>
+      <input type="text" id="model" data-i18n-placeholder="modelPlaceholder" placeholder="Название модели (например, deepseek-chat)">
     </div>
 
     <div class="field">
-      <label for="batchSize">Размер пачки (узлов):</label>
+      <label for="batchSize" data-i18n="batchSizeLabel">Размер пачки (узлов):</label>
       <input type="number" id="batchSize" min="5" max="50" value="20">
     </div>
 
     <!-- Profile Management Section (внизу под размером пачки) -->
     <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-top: 10px; margin-bottom: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <label for="profileSelect" style="font-weight: 600; font-size: 11px; color: var(--primary); margin-bottom: 0;">Профиль настроек:</label>
+        <label for="profileSelect" data-i18n="profileSelectLabel" style="font-weight: 600; font-size: 11px; color: var(--primary); margin-bottom: 0;">Профиль настроек:</label>
         <div style="display: flex; gap: 4px;">
-          <button id="addProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px;" title="Создать новый профиль">+ Новый</button>
-          <button id="deleteProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px; color: var(--danger);" title="Удалить текущий профиль">🗑️</button>
+          <button id="addProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px;" data-i18n-title="addProfileTitle" data-i18n="addProfileBtn" title="Создать новый профиль">+ Новый</button>
+          <button id="deleteProfileBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 3px 6px; color: var(--danger);" data-i18n-title="deleteProfileTitle" title="Удалить текущий профиль">🗑️</button>
         </div>
       </div>
 
@@ -296,45 +296,46 @@
       </select>
 
       <div class="field" style="margin-bottom: 8px;">
-        <label for="profileName">Название профиля:</label>
-        <input type="text" id="profileName" placeholder="Например: Google Gemini (Основной)">
+        <label for="profileName" data-i18n="profileNameLabel">Название профиля:</label>
+        <input type="text" id="profileName" data-i18n-placeholder="profileNamePlaceholder" placeholder="Например: Google Gemini (Основной)">
       </div>
 
       <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-        <button id="exportProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" title="Экспортировать профили в JSON-файл">📤 Экспорт JSON</button>
-        <button id="importProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" title="Импортировать профили из JSON-файла">📥 Импорт JSON</button>
+        <button id="exportProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" data-i18n-title="exportProfilesTitle" data-i18n="exportProfilesBtn" title="Экспортировать профили в JSON-файл">📤 Экспорт JSON</button>
+        <button id="importProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" data-i18n-title="importProfilesTitle" data-i18n="importProfilesBtn" title="Импортировать профили из JSON-файла">📥 Импорт JSON</button>
         <input type="file" id="importProfilesFile" accept=".json,application/json" style="display: none;">
       </div>
 
       <div style="display: flex; align-items: center; gap: 6px; padding-top: 2px;">
         <input type="checkbox" id="autoRotateCheckbox" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--primary);">
-        <label for="autoRotateCheckbox" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text); margin-bottom: 0;">
+        <label for="autoRotateCheckbox" data-i18n="autoRotateLabel" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text); margin-bottom: 0;">
           Авторотация при исчерпании лимита (429/Quota)
         </label>
       </div>
     </div>
 
     <div class="field" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-      <span id="cacheStats" style="font-size: 11px; color: var(--text-muted);">Кэш: 0 записей</span>
-      <button id="clearCacheBtn" class="btn-secondary" style="flex: 0 0 auto; font-size: 10px; padding: 4px 8px;">Очистить кэш</button>
+      <span id="cacheStats" style="font-size: 11px; color: var(--text-muted);" data-i18n="cacheStats">Кэш: 0 записей</span>
+      <button id="clearCacheBtn" class="btn-secondary" style="flex: 0 0 auto; font-size: 10px; padding: 4px 8px;" data-i18n="clearCacheBtn">Очистить кэш</button>
     </div>
 
     <div class="btn-group" style="margin-bottom: 0;">
-      <button id="testApiBtn" class="btn-secondary" style="font-size: 11px; padding: 6px;">Проверить API</button>
-      <button id="saveSettingsBtn" class="btn-primary" style="font-size: 11px; padding: 6px;">Сохранить профиль</button>
+      <button id="testApiBtn" class="btn-secondary" style="font-size: 11px; padding: 6px;" data-i18n="testApiBtn">Проверить API</button>
+      <button id="saveSettingsBtn" class="btn-primary" style="font-size: 11px; padding: 6px;" data-i18n="saveSettingsBtn">Сохранить профиль</button>
     </div>
   </div>
 
   <div class="status-box">
     <span id="statusDot" class="status-dot"></span>
-    <span id="statusText">Готов к переводу</span>
+    <span id="statusText" data-i18n="statusReady">Готов к переводу</span>
   </div>
 
   <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px;">
-    <a href="http://127.0.0.1:8046/logs" target="_blank" style="color: var(--primary); text-decoration: none;">📄 Открыть файл логов</a>
-    <span id="downloadLogsBtn" style="color: var(--text-muted); cursor: pointer; text-decoration: underline;">Экспорт</span>
+    <a href="http://127.0.0.1:8046/logs" target="_blank" style="color: var(--primary); text-decoration: none;" data-i18n="viewLogsLink">📄 Открыть файл логов</a>
+    <span id="downloadLogsBtn" style="color: var(--text-muted); cursor: pointer; text-decoration: underline;" data-i18n="downloadLogsBtn">Экспорт</span>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="config.js"></script>
   <script src="popup.js"></script>
 </body>

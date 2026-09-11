@@ -479,12 +479,64 @@ class CacheTester {
   assert.strictEqual(reimported.profiles.length, 3, "All profiles must be preserved in JSON export");
   assert.strictEqual(reimported.autoRotate, true, "autoRotate setting must be preserved in export");
 
-  // Test array-only format import fallback
-  const rawArrayJson = JSON.stringify(mockProfiles);
-  const rawParsed = JSON.parse(rawArrayJson);
-  assert.strictEqual(Array.isArray(rawParsed), true, "Direct array JSON must be parseable");
+  // 10. Test Internationalization (i18n) Module
+  const I18N = require("./i18n.js");
+  assert.ok(I18N.DICTIONARIES.ru, "Russian dictionary must exist");
+  assert.ok(I18N.DICTIONARIES.en, "English dictionary must exist");
+  assert.ok(I18N.DICTIONARIES.zh, "Chinese dictionary must exist");
 
-  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language, profile auto-rotation & JSON import/export verified.");
+  // Verify critical keys exist across all dictionaries
+  const requiredKeys = [
+    "translateBtn", "restoreBtn", "toggleSettings", "apiUrlLabel",
+    "apiKeyLabel", "modelLabel", "batchSizeLabel", "profileSelectLabel",
+    "addProfileBtn", "exportProfilesBtn", "importProfilesBtn", "autoRotateLabel",
+    "statusReady", "widgetOriginal", "widgetRefreshBtnTitle"
+  ];
+  for (const lang of ["ru", "en", "zh"]) {
+    for (const k of requiredKeys) {
+      assert.ok(I18N.DICTIONARIES[lang][k], `Key '${k}' must exist in ${lang} dictionary`);
+    }
+  }
+
+  // Test parameter replacement
+  const ruCacheText = I18N.DICTIONARIES.ru.cacheStats.replace("{n}", "42");
+  assert.strictEqual(ruCacheText, "Кэш: 42 записей");
+  const enCacheText = I18N.DICTIONARIES.en.cacheStats.replace("{n}", "42");
+  assert.strictEqual(enCacheText, "Cache: 42 entries");
+  const zhCacheText = I18N.DICTIONARIES.zh.cacheStats.replace("{n}", "42");
+  assert.strictEqual(zhCacheText, "缓存: 42 条");
+
+  // Test simulated DOM localization
+  class MockHtmlElement {
+    constructor(attrs = {}) {
+      this.attributes = attrs;
+      this.textContent = "";
+      this.placeholder = "";
+      this.title = "";
+    }
+    getAttribute(name) { return this.attributes[name] || null; }
+  }
+
+  const mockTranslateBtn = new MockHtmlElement({ "data-i18n": "translateBtn" });
+  const mockApiInput = new MockHtmlElement({ "data-i18n-placeholder": "apiKeyPlaceholder" });
+  const mockSwapBtn = new MockHtmlElement({ "data-i18n-title": "swapLangsTitle" });
+
+  const mockRoot = {
+    querySelectorAll: (sel) => {
+      if (sel === "[data-i18n]") return [mockTranslateBtn];
+      if (sel === "[data-i18n-placeholder]") return [mockApiInput];
+      if (sel === "[data-i18n-title]") return [mockSwapBtn];
+      if (sel === "option[data-i18n-opt]") return [];
+      return [];
+    }
+  };
+
+  I18N.localizeDOM(mockRoot);
+  assert.ok(mockTranslateBtn.textContent.length > 0, "Localized button should have translated text");
+  assert.ok(mockApiInput.placeholder.length > 0, "Localized input should have translated placeholder");
+  assert.ok(mockSwapBtn.title.length > 0, "Localized button should have translated title");
+
+  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language, profile auto-rotation, JSON import/export & i18n verified.");
 })();
 
 
