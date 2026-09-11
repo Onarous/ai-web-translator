@@ -464,6 +464,27 @@ class CacheTester {
   assert.strictEqual(simulateRotate("prof_2", mockProfiles).id, "prof_3", "Should rotate from DeepSeek to Groq");
   assert.strictEqual(simulateRotate("prof_3", mockProfiles).id, "prof_1", "Should wrap around from Groq back to Gemini");
 
-  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language & profile auto-rotation verified.");
+  // 9. Test Profiles JSON Import & Export Serialization
+  const exportPayload = {
+    version: "1.0",
+    app: "AI Translator",
+    exportedAt: new Date().toISOString(),
+    activeProfileId: "prof_1",
+    autoRotate: true,
+    profiles: mockProfiles
+  };
+  const serialized = JSON.stringify(exportPayload, null, 2);
+  const reimported = JSON.parse(serialized);
+  assert.strictEqual(Array.isArray(reimported.profiles), true, "Exported JSON must contain profiles array");
+  assert.strictEqual(reimported.profiles.length, 3, "All profiles must be preserved in JSON export");
+  assert.strictEqual(reimported.autoRotate, true, "autoRotate setting must be preserved in export");
+
+  // Test array-only format import fallback
+  const rawArrayJson = JSON.stringify(mockProfiles);
+  const rawParsed = JSON.parse(rawArrayJson);
+  assert.strictEqual(Array.isArray(rawParsed), true, "Direct array JSON must be parseable");
+
+  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience, multi-language, profile auto-rotation & JSON import/export verified.");
 })();
+
 

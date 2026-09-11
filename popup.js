@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const autoRotateCheckbox = document.getElementById("autoRotateCheckbox");
   const addProfileBtn = document.getElementById("addProfileBtn");
   const deleteProfileBtn = document.getElementById("deleteProfileBtn");
+  const exportProfilesBtn = document.getElementById("exportProfilesBtn");
+  const importProfilesBtn = document.getElementById("importProfilesBtn");
+  const importProfilesFile = document.getElementById("importProfilesFile");
   const providerSelect = document.getElementById("providerSelect");
   const sourceLangSelect = document.getElementById("sourceLang");
   const targetLangSelect = document.getElementById("targetLang");
@@ -309,6 +312,97 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus("Профиль удален", "active");
         setTimeout(() => setStatus("Готов к переводу"), 1500);
       }
+    });
+  }
+
+  // Export profiles to JSON
+  if (exportProfilesBtn) {
+    exportProfilesBtn.addEventListener("click", () => {
+      saveCurrentFormToProfile();
+      const exportData = {
+        version: "1.0",
+        app: "AI Translator",
+        exportedAt: new Date().toISOString(),
+        activeProfileId,
+        autoRotate: autoRotateCheckbox ? autoRotateCheckbox.checked : true,
+        profiles
+      };
+      const jsonStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ai_translator_profiles_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setStatus(`Экспортировано ${profiles.length} профилей`, "active");
+      setTimeout(() => setStatus("Готов к переводу"), 2000);
+    });
+  }
+
+  // Import profiles from JSON
+  if (importProfilesBtn && importProfilesFile) {
+    importProfilesBtn.addEventListener("click", () => {
+      importProfilesFile.value = "";
+      importProfilesFile.click();
+    });
+
+    importProfilesFile.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const raw = event.target?.result;
+          const parsed = JSON.parse(raw);
+          let incomingProfiles = [];
+
+          if (Array.isArray(parsed)) {
+            incomingProfiles = parsed;
+          } else if (Array.isArray(parsed?.profiles)) {
+            incomingProfiles = parsed.profiles;
+            if (typeof parsed.autoRotate === "boolean" && autoRotateCheckbox) {
+              autoRotateCheckbox.checked = parsed.autoRotate;
+            }
+          } else {
+            throw new Error("Неверный формат JSON (ожидался список профилей)");
+          }
+
+          if (incomingProfiles.length === 0) {
+            throw new Error("Файл не содержит профилей");
+          }
+
+          const sanitized = incomingProfiles.map((p, idx) => ({
+            id: p.id || ("prof_" + Date.now() + "_" + idx),
+            name: p.name || `Профиль ${idx + 1}`,
+            apiUrl: p.apiUrl || DEFAULTS.apiUrl,
+            apiKey: p.apiKey || "",
+            model: p.model || DEFAULTS.model,
+            batchSize: Number(p.batchSize) || 20,
+            enabled: p.enabled !== false
+          }));
+
+          profiles = sanitized;
+          activeProfileId = (parsed?.activeProfileId && profiles.some((p) => p.id === parsed.activeProfileId))
+            ? parsed.activeProfileId
+            : profiles[0].id;
+
+          renderProfileSelect();
+          loadProfileIntoForm(activeProfileId);
+          persistProfilesState(() => {
+            setStatus(`Импортировано: ${profiles.length} профилей`, "active");
+            setTimeout(() => setStatus("Готов к переводу"), 2500);
+          });
+        } catch (err) {
+          console.error("[AI Translator] Import error:", err);
+          setStatus(`Ошибка импорта: ${err.message}`, "error");
+          setTimeout(() => setStatus("Готов к переводу"), 3500);
+        }
+      };
+      reader.readAsText(file);
     });
   }
 

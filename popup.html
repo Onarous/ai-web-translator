@@ -300,6 +300,12 @@
         <input type="text" id="profileName" placeholder="Например: Google Gemini (Основной)">
       </div>
 
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <button id="exportProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" title="Экспортировать профили в JSON-файл">📤 Экспорт JSON</button>
+        <button id="importProfilesBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px; flex: 1;" title="Импортировать профили из JSON-файла">📥 Импорт JSON</button>
+        <input type="file" id="importProfilesFile" accept=".json,application/json" style="display: none;">
+      </div>
+
       <div style="display: flex; align-items: center; gap: 6px; padding-top: 2px;">
         <input type="checkbox" id="autoRotateCheckbox" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--primary);">
         <label for="autoRotateCheckbox" style="font-size: 11px; cursor: pointer; user-select: none; color: var(--text); margin-bottom: 0;">
