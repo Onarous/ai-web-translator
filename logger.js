@@ -25,6 +25,7 @@ function maskSensitiveData(text) {
   }
   return text
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, "sk-***")
+    .replace(/AIzaSy[a-zA-Z0-9_\-]{30,}/g, "AIzaSy***")
     .replace(/Bearer\s+[a-zA-Z0-9_\-.]+/gi, "Bearer ***");
 }
 

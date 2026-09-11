@@ -170,19 +170,24 @@
   <span id="toggleSettings" class="settings-toggle">Настройки API</span>
 
   <div id="settingsPanel" class="settings-panel">
+    <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+      <button id="presetLocalBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px;">⚡ Локальный (8045)</button>
+      <button id="presetGeminiBtn" type="button" class="btn-secondary" style="font-size: 10px; padding: 4px 6px;">🌐 Google Gemini</button>
+    </div>
+
     <div class="field">
       <label for="apiUrl">API URL (OpenAI-compatible):</label>
       <input type="text" id="apiUrl" placeholder="http://localhost:8045/v1/chat/completions">
     </div>
 
     <div class="field">
-      <label for="apiKey">API Key (Bearer token):</label>
-      <input type="password" id="apiKey" placeholder="sk-...">
+      <label for="apiKey">API Key (Bearer / Google AI Studio):</label>
+      <input type="password" id="apiKey" placeholder="sk-... или AIzaSy...">
     </div>
 
     <div class="field">
       <label for="model">Модель:</label>
-      <input type="text" id="model" placeholder="gemini-3.8-flash-low">
+      <input type="text" id="model" placeholder="gemini-3.8-flash-low или gemini-2.5-flash">
     </div>
 
     <div class="field">

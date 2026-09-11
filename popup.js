@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveSettingsBtn = document.getElementById("saveSettingsBtn");
   const cacheStats = document.getElementById("cacheStats");
   const clearCacheBtn = document.getElementById("clearCacheBtn");
+  const presetLocalBtn = document.getElementById("presetLocalBtn");
+  const presetGeminiBtn = document.getElementById("presetGeminiBtn");
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
 
@@ -53,6 +55,25 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleSettings.addEventListener("click", () => {
     settingsPanel.classList.toggle("open");
   });
+
+  // Presets
+  if (presetLocalBtn) {
+    presetLocalBtn.addEventListener("click", () => {
+      apiUrlInput.value = "http://localhost:8045/v1/chat/completions";
+      modelInput.value = "gemini-3.8-flash-low";
+      setStatus("Выбран локальный пресет", "active");
+      setTimeout(() => setStatus("Готов к переводу"), 1500);
+    });
+  }
+
+  if (presetGeminiBtn) {
+    presetGeminiBtn.addEventListener("click", () => {
+      apiUrlInput.value = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+      modelInput.value = "gemini-2.5-flash";
+      setStatus("Выбран пресет Google Gemini Cloud", "active");
+      setTimeout(() => setStatus("Готов к переводу"), 1500);
+    });
+  }
 
   // Save settings
   saveSettingsBtn.addEventListener("click", () => {

@@ -1,4 +1,4 @@
-﻿# Local AI Web Translator | Chinese to Russian (ZH → RU)
+# Local AI Web Translator | Chinese to Russian (ZH → RU)
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -86,6 +86,7 @@ Local AI Web Translator works with any OpenAI-compatible `/v1/chat/completions` 
 
 | Backend | Default Endpoint | Authorization | Notes |
 | :--- | :--- | :--- | :--- |
+| **Google Gemini (Cloud)** | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | Bearer (AIzaSy...) | Direct Google AI Studio API support |
 | **Ollama** | `http://localhost:11434/v1/chat/completions` | None required | Fast, lightweight local deployment |
 | **LM Studio** | `http://localhost:1234/v1/chat/completions` | None required | Interactive GUI for GGUF models |
 | **vLLM** | `http://localhost:8000/v1/chat/completions` | Optional Bearer | High-throughput batching for servers |
