@@ -59,7 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync.get(DEFAULTS, (items) => {
     apiUrlInput.value = items.apiUrl || DEFAULTS.apiUrl;
     apiKeyInput.value = items.apiKey || DEFAULTS.apiKey;
-    modelInput.value = items.model || DEFAULTS.model;
+    let savedModel = items.model || DEFAULTS.model;
+    if (savedModel === "gemini-2.0-flash") {
+      savedModel = "gemini-3.5-flash-lite";
+    }
+    modelInput.value = savedModel;
     batchSizeInput.value = items.batchSize || DEFAULTS.batchSize;
     if (sourceLangSelect) sourceLangSelect.value = items.sourceLang || DEFAULTS.sourceLang;
     if (targetLangSelect) targetLangSelect.value = items.targetLang || DEFAULTS.targetLang;
@@ -109,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (presetGeminiBtn) {
     presetGeminiBtn.addEventListener("click", () => {
       apiUrlInput.value = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-      modelInput.value = "gemini-2.0-flash";
+      modelInput.value = "gemini-3.5-flash-lite";
       setStatus("Выбран пресет Google Gemini Cloud", "active");
       setTimeout(() => setStatus("Готов к переводу"), 1500);
     });

@@ -138,7 +138,12 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = D
   if (!Array.isArray(texts) || texts.length === 0) return [];
 
   const endpoint = apiUrl || DEFAULT_API_URL;
-  const targetModel = model || DEFAULT_MODEL;
+  let targetModel = model || DEFAULT_MODEL;
+  if (endpoint.includes("generativelanguage.googleapis.com")) {
+    if (!model || model === "gemini-2.0-flash" || model === "gemini-3.8-flash-low") {
+      targetModel = "gemini-3.5-flash-lite";
+    }
+  }
   const key = apiKey !== undefined ? apiKey : DEFAULT_API_KEY;
   const srcLang = sourceLang || DEFAULT_SOURCE_LANG;
   const tgtLang = targetLang || DEFAULT_TARGET_LANG;
@@ -363,7 +368,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "CHECK_CONNECTION") {
     const endpoint = message.apiUrl || DEFAULT_API_URL;
     const key = message.apiKey !== undefined ? message.apiKey : DEFAULT_API_KEY;
-    const targetModel = message.model || DEFAULT_MODEL;
+    let targetModel = message.model || DEFAULT_MODEL;
+    if (endpoint.includes("generativelanguage.googleapis.com")) {
+      if (!message.model || message.model === "gemini-2.0-flash" || message.model === "gemini-3.8-flash-low") {
+        targetModel = "gemini-3.5-flash-lite";
+      }
+    }
     const headers = { "Content-Type": "application/json" };
     if (key) {
       headers["Authorization"] = `Bearer ${key}`;
