@@ -7,7 +7,37 @@ try {
 const DEFAULT_API_URL = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiUrl : "http://localhost:8045/v1/chat/completions";
 const DEFAULT_MODEL = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.model : "gemini-3.8-flash-low";
 const DEFAULT_API_KEY = typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiKey : "";
+const DEFAULT_SOURCE_LANG = typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "zh") : "zh";
+const DEFAULT_TARGET_LANG = typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.targetLang || "ru") : "ru";
 const LOGGER_ENDPOINT = "http://127.0.0.1:8046/log";
+
+const LANG_NAMES = {
+  zh: "Chinese",
+  ru: "Russian",
+  en: "English",
+  ja: "Japanese",
+  ko: "Korean",
+  de: "German",
+  fr: "French",
+  es: "Spanish",
+  it: "Italian",
+  auto: "the original web page language"
+};
+
+function buildSystemPrompt(sourceLang = "zh", targetLang = "ru") {
+  const srcName = LANG_NAMES[sourceLang] || sourceLang;
+  const tgtName = LANG_NAMES[targetLang] || targetLang;
+
+  const prompt = [
+    `You are a professional ${srcName} to ${tgtName} translator for web pages.`,
+    `Translate each text string in the input JSON array into natural, fluent ${tgtName}.`,
+    "Maintain the exact tone, terminology, and formatting tags/placeholders if any.",
+    `UI CONCISENESS & COMPACTNESS: For buttons, navigation menus, tags, badges, and table headers (short strings under 15 characters), keep ${tgtName} translations VERY SHORT and compact (1-2 words max) to preserve web layout and prevent buttons from overflowing.`,
+    "CRITICAL REQUIREMENT: Output ONLY a valid JSON array of strings in the exact same length and order as the input array.",
+    "Do NOT include markdown formatting, explanations, keys, or code blocks."
+  ];
+  return prompt.join(" ");
+}
 
 /**
  * Sends masked log entries to the local file logger (http://127.0.0.1:8046/log)
@@ -104,30 +134,27 @@ function scheduleSaveCache() {
  * @param {string} apiKey
  * @returns {Promise<string[]>}
  */
-async function requestAiTranslation(texts, apiUrl, model, apiKey) {
+async function requestAiTranslation(texts, apiUrl, model, apiKey, sourceLang = DEFAULT_SOURCE_LANG, targetLang = DEFAULT_TARGET_LANG) {
   if (!Array.isArray(texts) || texts.length === 0) return [];
 
   const endpoint = apiUrl || DEFAULT_API_URL;
   const targetModel = model || DEFAULT_MODEL;
   const key = apiKey !== undefined ? apiKey : DEFAULT_API_KEY;
+  const srcLang = sourceLang || DEFAULT_SOURCE_LANG;
+  const tgtLang = targetLang || DEFAULT_TARGET_LANG;
   const startTime = Date.now();
   const totalChars = texts.reduce((acc, t) => acc + (t ? t.length : 0), 0);
 
-  writeLog("INFO", "BATCH_REQ", `Sending batch to AI (${texts.length} unique nodes, ${totalChars} chars)`, {
+  writeLog("INFO", "BATCH_REQ", `Sending batch to AI (${texts.length} unique nodes, ${totalChars} chars, ${srcLang}->${tgtLang})`, {
     model: targetModel,
     endpoint,
+    sourceLang: srcLang,
+    targetLang: tgtLang,
     nodeCount: texts.length,
     inputSample: texts.slice(0, 3)
   });
 
-  const systemPrompt = [
-    "You are a professional Chinese to Russian translator for web pages.",
-    "Translate each Chinese text string in the input JSON array into natural, fluent Russian.",
-    "Maintain the exact tone, terminology, and formatting tags/placeholders if any.",
-    "UI CONCISENESS & COMPACTNESS: For buttons, navigation menus, tags, badges, and table headers (short strings under 10 Chinese characters), keep Russian translations VERY SHORT and compact (1-2 words max) to preserve web layout and prevent buttons from overflowing. Examples: 首页 -> Главная; 模型市场 -> Модели; 商家入驻 -> Партнерам; 控制台 -> Консоль; 文档 -> Доки; 禁 -> Блок; 固定此商家 -> Закрепить; 加入路由 -> В маршрут; 保真 -> Оригинал; 稳定 -> Стабильно; 高速 -> Быстро; 高质 -> Качество.",
-    "CRITICAL REQUIREMENT: Output ONLY a valid JSON array of strings in the exact same length and order as the input array.",
-    "Do NOT include markdown formatting, explanations, keys, or code blocks."
-  ].join(" ");
+  const systemPrompt = buildSystemPrompt(srcLang, tgtLang);
 
   const requestBody = {
     model: targetModel,
@@ -234,12 +261,16 @@ async function requestAiTranslation(texts, apiUrl, model, apiKey) {
  * @param {string} apiKey - Optional Bearer authentication token
  * @returns {Promise<string[]>} Translated Russian strings
  */
-async function translateBatch(texts, apiUrl, model, apiKey) {
+async function translateBatch(texts, apiUrl, model, apiKey, sourceLang = DEFAULT_SOURCE_LANG, targetLang = DEFAULT_TARGET_LANG) {
   if (!Array.isArray(texts) || texts.length === 0) {
     return [];
   }
 
   await loadCache();
+
+  const srcLang = sourceLang || DEFAULT_SOURCE_LANG;
+  const tgtLang = targetLang || DEFAULT_TARGET_LANG;
+  const cachePrefix = `${srcLang}->${tgtLang}:`;
 
   const result = new Array(texts.length);
   const missingIndicesMap = new Map();
@@ -247,8 +278,9 @@ async function translateBatch(texts, apiUrl, model, apiKey) {
 
   for (let i = 0; i < texts.length; i++) {
     const text = texts[i];
-    if (translationCache.has(text)) {
-      result[i] = translationCache.get(text);
+    const cacheKey = cachePrefix + text;
+    if (translationCache.has(cacheKey)) {
+      result[i] = translationCache.get(cacheKey);
       hitCount++;
     } else {
       if (!missingIndicesMap.has(text)) {
@@ -260,19 +292,19 @@ async function translateBatch(texts, apiUrl, model, apiKey) {
 
   // 100% cache hit: return immediately without network call
   if (hitCount === texts.length) {
-    writeLog("INFO", "CACHE_HIT", `All ${texts.length} nodes resolved from cache (0ms API latency, 0 quota spent)`);
+    writeLog("INFO", "CACHE_HIT", `All ${texts.length} nodes resolved from cache (${srcLang}->${tgtLang}, 0ms API latency, 0 quota spent)`);
     return result;
   }
 
   const uniqueMissing = Array.from(missingIndicesMap.keys());
-  writeLog("INFO", "CACHE_STATS", `Cache resolved ${hitCount}/${texts.length} nodes (${Math.round((hitCount / texts.length) * 100)}%). Sending ${uniqueMissing.length} unique missing texts to AI.`);
+  writeLog("INFO", "CACHE_STATS", `Cache resolved ${hitCount}/${texts.length} nodes (${Math.round((hitCount / texts.length) * 100)}%). Sending ${uniqueMissing.length} unique missing texts to AI (${srcLang}->${tgtLang}).`);
 
-  const aiTranslations = await requestAiTranslation(uniqueMissing, apiUrl, model, apiKey);
+  const aiTranslations = await requestAiTranslation(uniqueMissing, apiUrl, model, apiKey, srcLang, tgtLang);
 
   for (let m = 0; m < uniqueMissing.length; m++) {
     const orig = uniqueMissing[m];
     const trans = aiTranslations[m] || orig;
-    translationCache.set(orig, trans);
+    translationCache.set(cachePrefix + orig, trans);
 
     const indices = missingIndicesMap.get(orig);
     if (indices) {
@@ -295,7 +327,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message?.type === "TRANSLATE_BATCH") {
-    translateBatch(message.texts, message.apiUrl, message.model, message.apiKey)
+    translateBatch(message.texts, message.apiUrl, message.model, message.apiKey, message.sourceLang, message.targetLang)
       .then((translations) => {
         sendResponse({ success: true, translations });
       })

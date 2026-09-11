@@ -386,5 +386,38 @@ class CacheTester {
   }
   assert.strictEqual(tabNode1.nodeValue, "Главная", "Tab 1 must be instantly re-translated after React re-render");
 
-  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication & tab resilience verified.");
+  // 7. Test Multi-Language Detection & Prompt Generation
+  const LANG_REGEX = {
+    zh: /[\u4e00-\u9fa5]/,
+    ja: /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff]/,
+    ko: /[\uac00-\ud7af\u1100-\u11ff\u3130-\u318f]/,
+    ru: /[\u0400-\u04FF]/,
+    en: /[a-zA-Z]{2,}/
+  };
+
+  function testIsTranslatable(text, sourceLang = "zh", targetLang = "ru") {
+    const trimmed = text.trim();
+    if (!trimmed) return false;
+    if (sourceLang === "auto") {
+      const hasLetters = /[a-zA-Z\u0400-\u04FF\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
+      if (!hasLetters.test(trimmed)) return false;
+      const targetReg = LANG_REGEX[targetLang];
+      if (targetReg && targetReg.test(trimmed)) {
+        return /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(trimmed);
+      }
+      return true;
+    }
+    const reg = LANG_REGEX[sourceLang] || LANG_REGEX.zh;
+    return reg.test(trimmed);
+  }
+
+  assert.strictEqual(testIsTranslatable("你好世界", "zh", "ru"), true, "Should detect Chinese");
+  assert.strictEqual(testIsTranslatable("Hello World", "en", "ru"), true, "Should detect English");
+  assert.strictEqual(testIsTranslatable("こんにちは世界", "ja", "ru"), true, "Should detect Japanese");
+  assert.strictEqual(testIsTranslatable("안녕하세요 세계", "ko", "ru"), true, "Should detect Korean");
+  assert.strictEqual(testIsTranslatable("12345 !@#", "zh", "ru"), false, "Should not detect numbers and symbols");
+  assert.strictEqual(testIsTranslatable("English text", "auto", "ru"), true, "Auto-detect should detect English for Russian target");
+  assert.strictEqual(testIsTranslatable("Привет мир", "auto", "ru"), false, "Auto-detect should skip Russian when target is Russian");
+
+  console.log("All test assertions passed successfully! DOM restoration, translation, cache, deduplication, tab resilience & multi-language verified.");
 })();

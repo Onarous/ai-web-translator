@@ -4,8 +4,39 @@
  */
 
 (() => {
-  // Regex to detect Han (Chinese) characters
-  const HAN_REGEX = /[\u4e00-\u9fa5]/;
+  const LANG_REGEX = {
+    zh: /[\u4e00-\u9fa5]/,
+    ja: /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff]/,
+    ko: /[\uac00-\ud7af\u1100-\u11ff\u3130-\u318f]/,
+    ru: /[\u0400-\u04FF]/,
+    en: /[a-zA-Z]{2,}/,
+    de: /[a-zA-ZäöüßÄÖÜ]{2,}/,
+    fr: /[a-zA-ZàâçéèêëîïôûùüÿñæœÀÂÇÉÈÊËÎÏÔÛÙÜŸÑÆŒ]{2,}/,
+    es: /[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]{2,}/,
+    it: /[a-zA-ZàèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]{2,}/
+  };
+
+  function isTranslatableText(text) {
+    if (!text || typeof text !== "string") return false;
+    const trimmed = text.trim();
+    if (!trimmed) return false;
+
+    const sourceLang = (cachedSettings && cachedSettings.sourceLang) || "zh";
+    const targetLang = (cachedSettings && cachedSettings.targetLang) || "ru";
+
+    if (sourceLang === "auto") {
+      const hasLetters = /[a-zA-Z\u0400-\u04FF\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
+      if (!hasLetters.test(trimmed)) return false;
+      const targetReg = LANG_REGEX[targetLang];
+      if (targetReg && targetReg.test(trimmed)) {
+        return /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(trimmed);
+      }
+      return true;
+    }
+
+    const reg = LANG_REGEX[sourceLang] || LANG_REGEX.zh;
+    return reg.test(trimmed);
+  }
 
   // Tags whose text content must NEVER be modified or translated
   const IGNORED_TAGS = new Set([
@@ -189,7 +220,7 @@
       NodeFilter.SHOW_TEXT,
       {
         acceptNode(node) {
-          if (!node.nodeValue || !HAN_REGEX.test(node.nodeValue)) {
+          if (!node.nodeValue || !isTranslatableText(node.nodeValue)) {
             return NodeFilter.FILTER_SKIP;
           }
           if (isIgnoredElement(node.parentElement)) {
@@ -210,7 +241,7 @@
       const trailing = raw.match(/\s*$/)[0];
       const core = raw.trim();
 
-      if (core && HAN_REGEX.test(core)) {
+      if (core && isTranslatableText(core)) {
         activeNodes.delete(currentNode);
         if (!originalTextMap.has(currentNode)) {
           originalTextMap.set(currentNode, raw);
@@ -260,11 +291,11 @@
       if (isIgnoredAttributeElement(el)) continue;
       for (const attr of TRANSLATABLE_ATTRS) {
         const raw = el.getAttribute(attr);
-        if (raw && HAN_REGEX.test(raw)) {
+        if (raw && isTranslatableText(raw)) {
           const leading = raw.match(/^\s*/)[0];
           const trailing = raw.match(/\s*$/)[0];
           const core = raw.trim();
-          if (core && HAN_REGEX.test(core)) {
+          if (core && isTranslatableText(core)) {
             activeAttrElements.delete(el);
             if (!originalAttrMap.has(el)) {
               originalAttrMap.set(el, {});
@@ -466,12 +497,12 @@
                 }
               }
             } else if (addedNode.nodeType === Node.TEXT_NODE) {
-              if (HAN_REGEX.test(addedNode.nodeValue) && !isIgnoredElement(addedNode.parentElement)) {
+              if (isTranslatableText(addedNode.nodeValue) && !isIgnoredElement(addedNode.parentElement)) {
                 const raw = addedNode.nodeValue;
                 const leading = raw.match(/^\s*/)[0];
                 const trailing = raw.match(/\s*$/)[0];
                 const core = raw.trim();
-                if (core && HAN_REGEX.test(core) && !originalTextMap.has(addedNode)) {
+                if (core && isTranslatableText(core) && !originalTextMap.has(addedNode)) {
                   originalTextMap.set(addedNode, raw);
                   if (!pendingNodes.some(p => p.node === addedNode)) {
                     pendingNodes.push({ type: "text", node: addedNode, leading, core, trailing });
@@ -485,14 +516,14 @@
           if (
             target &&
             target.nodeType === Node.TEXT_NODE &&
-            HAN_REGEX.test(target.nodeValue) &&
+            isTranslatableText(target.nodeValue) &&
             !isIgnoredElement(target.parentElement)
           ) {
             const raw = target.nodeValue;
             const leading = raw.match(/^\s*/)[0];
             const trailing = raw.match(/\s*$/)[0];
             const core = raw.trim();
-            if (core && HAN_REGEX.test(core)) {
+            if (core && isTranslatableText(core)) {
               activeNodes.delete(target);
               originalTextMap.set(target, raw);
               if (!pendingNodes.some(p => p.node === target)) {
@@ -510,11 +541,11 @@
             const attrName = mutation.attributeName;
             if (TRANSLATABLE_ATTRS.includes(attrName)) {
               const raw = el.getAttribute(attrName);
-              if (raw && HAN_REGEX.test(raw)) {
+              if (raw && isTranslatableText(raw)) {
                 const leading = raw.match(/^\s*/)[0];
                 const trailing = raw.match(/\s*$/)[0];
                 const core = raw.trim();
-                if (core && HAN_REGEX.test(core)) {
+                if (core && isTranslatableText(core)) {
                   activeAttrElements.delete(el);
                   if (!originalAttrMap.has(el)) {
                     originalAttrMap.set(el, {});
@@ -597,14 +628,15 @@
 
   let cachedSettings = null;
   async function getSettings() {
-    if (cachedSettings) return cachedSettings;
     return new Promise((resolve) => {
       chrome.storage.sync.get(
         {
           apiUrl: "http://localhost:8045/v1/chat/completions",
           model: "gemini-3.8-flash-low",
           apiKey: "",
-          batchSize: 20
+          batchSize: 20,
+          sourceLang: "zh",
+          targetLang: "ru"
         },
         (res) => {
           cachedSettings = res;
@@ -614,11 +646,22 @@
     });
   }
 
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "sync") {
+        getSettings().then(() => {
+          updateWidgetUI(isTranslated ? "done" : "idle");
+        });
+      }
+    });
+  }
+
   let isScanning = false;
   async function reScanAndTranslateVisible() {
     if (!isTranslated || isScanning) return;
     isScanning = true;
     try {
+      const settings = await getSettings();
       const textItems = collectChineseTextNodes(document.body);
       const attrItems = collectChineseAttributes(document.body);
       const items = [...textItems, ...attrItems];
@@ -803,7 +846,9 @@
             texts: textCores,
             apiUrl: settings.apiUrl,
             model: settings.model,
-            apiKey: settings.apiKey
+            apiKey: settings.apiKey,
+            sourceLang: settings.sourceLang || "zh",
+            targetLang: settings.targetLang || "ru"
           },
           (res) => {
             if (chrome.runtime.lastError) {
@@ -894,28 +939,17 @@
       return;
     }
 
+    const settings = await getSettings();
     const textItems = collectChineseTextNodes(document.body);
     const attrItems = collectChineseAttributes(document.body);
     const items = [...textItems, ...attrItems];
 
     if (items.length === 0) {
-      updateWidgetUI("no_chinese");
+      updateWidgetUI("no_text");
       return;
     }
 
     isTranslating = true;
-
-    const settings = await new Promise((resolve) => {
-      chrome.storage.sync.get(
-        {
-          apiUrl: "http://localhost:8045/v1/chat/completions",
-          model: "gemini-3.8-flash-low",
-          apiKey: "",
-          batchSize: 20
-        },
-        resolve
-      );
-    });
 
     // Separate elements into in-viewport vs off-screen to preserve LLM quota
     const visibleItems = [];
@@ -973,6 +1007,12 @@
   let shadowRoot = null;
   let widgetContainer = null;
 
+  function getPairLabel() {
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
+    const tgt = ((cachedSettings && cachedSettings.targetLang) || "ru").toUpperCase();
+    return `${src} → ${tgt}`;
+  }
+
   function initFloatingWidget() {
     if (document.getElementById("local-ai-translator-root")) return;
 
@@ -984,6 +1024,7 @@
     widgetContainer.style.right = "16px";
     widgetContainer.style.zIndex = "2147483647";
 
+    const initialPair = getPairLabel();
     shadowRoot = widgetContainer.attachShadow({ mode: "closed" });
     shadowRoot.innerHTML = `
       <style>
@@ -1035,9 +1076,9 @@
           to { opacity: 1; transform: scale(1.1); }
         }
       </style>
-      <div id="btn" class="badge" title="Локальный AI переводчик ZH -> RU">
+      <div id="btn" class="badge" title="Local AI Web Translator">
         <span class="dot"></span>
-        <span id="label">ZH → RU</span>
+        <span id="label">${initialPair}</span>
       </div>
     `;
 
@@ -1061,17 +1102,19 @@
     if (!btn || !label) return;
 
     btn.className = "badge";
+    const pair = getPairLabel();
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
 
     if (state === "translating") {
       btn.classList.add("busy");
       label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
     } else if (state === "done") {
       btn.classList.add("active");
-      label.textContent = "Оригинал (ZH)";
-    } else if (state === "no_chinese") {
-      label.textContent = "Нет китайского";
+      label.textContent = `Оригинал (${src})`;
+    } else if (state === "no_text") {
+      label.textContent = "Нет текста";
       setTimeout(() => {
-        label.textContent = "ZH → RU";
+        label.textContent = pair;
       }, 2000);
     } else if (state === "error") {
       btn.classList.add("error");
@@ -1079,10 +1122,10 @@
       btn.title = data.error || "Ошибка подключения";
       setTimeout(() => {
         btn.className = "badge";
-        label.textContent = "ZH → RU";
+        label.textContent = pair;
       }, 4000);
     } else {
-      label.textContent = "ZH → RU";
+      label.textContent = pair;
     }
   }
 

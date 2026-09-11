@@ -155,12 +155,86 @@
     .status-dot.error {
       background: var(--danger);
     }
+    .lang-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .lang-col {
+      flex: 1;
+    }
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus {
+      border-color: var(--primary);
+    }
+    .btn-swap {
+      flex: 0 0 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 13px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-swap:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Local AI Translator <span class="badge">ZH → RU</span></h1>
+    <h1>Local AI Translator <span id="langPairBadge" class="badge">ZH → RU</span></h1>
   </header>
+
+  <div class="lang-row">
+    <div class="lang-col">
+      <label for="sourceLang">С какого:</label>
+      <select id="sourceLang">
+        <option value="zh" selected>Китайский (ZH)</option>
+        <option value="auto">Автоопределение</option>
+        <option value="en">Английский (EN)</option>
+        <option value="ja">Японский (JA)</option>
+        <option value="ko">Корейский (KO)</option>
+        <option value="de">Немецкий (DE)</option>
+        <option value="fr">Французский (FR)</option>
+        <option value="es">Испанский (ES)</option>
+        <option value="it">Итальянский (IT)</option>
+        <option value="ru">Русский (RU)</option>
+      </select>
+    </div>
+    <button id="swapLangsBtn" type="button" title="Поменять местами" class="btn-swap">⇄</button>
+    <div class="lang-col">
+      <label for="targetLang">На какой:</label>
+      <select id="targetLang">
+        <option value="ru" selected>Русский (RU)</option>
+        <option value="en">Английский (EN)</option>
+        <option value="zh">Китайский (ZH)</option>
+        <option value="de">Немецкий (DE)</option>
+        <option value="fr">Французский (FR)</option>
+        <option value="es">Испанский (ES)</option>
+        <option value="ja">Японский (JA)</option>
+        <option value="ko">Корейский (KO)</option>
+        <option value="it">Итальянский (IT)</option>
+      </select>
+    </div>
+  </div>
 
   <div class="btn-group">
     <button id="translateBtn" class="btn-primary">Перевести</button>

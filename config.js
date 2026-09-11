@@ -3,7 +3,9 @@ const DEFAULT_CONFIG = {
   apiUrl: "http://localhost:8045/v1/chat/completions",
   model: "gemini-3.8-flash-low",
   apiKey: "",
-  batchSize: 20
+  batchSize: 20,
+  sourceLang: "zh",
+  targetLang: "ru"
 };
 
 if (typeof module !== "undefined" && module.exports) {

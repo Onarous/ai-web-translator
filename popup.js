@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearCacheBtn = document.getElementById("clearCacheBtn");
   const presetLocalBtn = document.getElementById("presetLocalBtn");
   const presetGeminiBtn = document.getElementById("presetGeminiBtn");
+  const sourceLangSelect = document.getElementById("sourceLang");
+  const targetLangSelect = document.getElementById("targetLang");
+  const swapLangsBtn = document.getElementById("swapLangsBtn");
+  const langPairBadge = document.getElementById("langPairBadge");
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
 
@@ -24,8 +28,16 @@ document.addEventListener("DOMContentLoaded", () => {
     apiUrl: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiUrl : "http://localhost:8045/v1/chat/completions",
     model: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.model : "gemini-3.8-flash-low",
     apiKey: typeof DEFAULT_CONFIG !== "undefined" ? DEFAULT_CONFIG.apiKey : "",
-    batchSize: 20
+    batchSize: 20,
+    sourceLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.sourceLang || "zh") : "zh",
+    targetLang: typeof DEFAULT_CONFIG !== "undefined" ? (DEFAULT_CONFIG.targetLang || "ru") : "ru"
   };
+
+  function updateBadge(src, tgt) {
+    if (langPairBadge) {
+      langPairBadge.textContent = `${(src || "zh").toUpperCase()} → ${(tgt || "ru").toUpperCase()}`;
+    }
+  }
 
   function refreshCacheStats() {
     if (!cacheStats) return;
@@ -49,7 +61,35 @@ document.addEventListener("DOMContentLoaded", () => {
     apiKeyInput.value = items.apiKey || DEFAULTS.apiKey;
     modelInput.value = items.model || DEFAULTS.model;
     batchSizeInput.value = items.batchSize || DEFAULTS.batchSize;
+    if (sourceLangSelect) sourceLangSelect.value = items.sourceLang || DEFAULTS.sourceLang;
+    if (targetLangSelect) targetLangSelect.value = items.targetLang || DEFAULTS.targetLang;
+    updateBadge(items.sourceLang || DEFAULTS.sourceLang, items.targetLang || DEFAULTS.targetLang);
   });
+
+  function saveLanguageSelection() {
+    const src = sourceLangSelect ? sourceLangSelect.value : "zh";
+    const tgt = targetLangSelect ? targetLangSelect.value : "ru";
+    updateBadge(src, tgt);
+    chrome.storage.sync.set({ sourceLang: src, targetLang: tgt });
+  }
+
+  if (sourceLangSelect) sourceLangSelect.addEventListener("change", saveLanguageSelection);
+  if (targetLangSelect) targetLangSelect.addEventListener("change", saveLanguageSelection);
+
+  if (swapLangsBtn) {
+    swapLangsBtn.addEventListener("click", () => {
+      if (!sourceLangSelect || !targetLangSelect) return;
+      if (sourceLangSelect.value === "auto") {
+        sourceLangSelect.value = "ru";
+        targetLangSelect.value = "en";
+      } else {
+        const temp = sourceLangSelect.value;
+        sourceLangSelect.value = targetLangSelect.value;
+        targetLangSelect.value = temp;
+      }
+      saveLanguageSelection();
+    });
+  }
 
   // Toggle settings view
   toggleSettings.addEventListener("click", () => {
@@ -81,7 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
       apiUrl: apiUrlInput.value.trim() || DEFAULTS.apiUrl,
       apiKey: apiKeyInput.value.trim(),
       model: modelInput.value.trim() || DEFAULTS.model,
-      batchSize: parseInt(batchSizeInput.value, 10) || DEFAULTS.batchSize
+      batchSize: parseInt(batchSizeInput.value, 10) || DEFAULTS.batchSize,
+      sourceLang: sourceLangSelect ? sourceLangSelect.value : DEFAULTS.sourceLang,
+      targetLang: targetLangSelect ? targetLangSelect.value : DEFAULTS.targetLang
     };
     chrome.storage.sync.set(newSettings, () => {
       setStatus("Настройки сохранены", "active");
