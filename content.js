@@ -888,6 +888,14 @@
   /**
    * Restores all modified nodes and attributes to their original pre-translation values.
    */
+  function removeFloatingWidget() {
+    if (widgetContainer) {
+      widgetContainer.remove();
+      widgetContainer = null;
+      shadowRoot = null;
+    }
+  }
+
   function restoreOriginal() {
     removeLayoutProtectionStyles();
     stopObservingDynamicContent();
@@ -918,12 +926,78 @@
     activeAttrElements.clear();
 
     isTranslated = false;
+    lastLangPair = null;
     try {
       sessionStorage.setItem("local_ai_translator_active", "false");
     } catch (e) {}
-    updateWidgetUI("idle");
-    sendLog("INFO", "DOM_RESTORE", `Restored ${restoredCount} items (text nodes & attributes) to original Chinese`, { restoredCount });
+    removeFloatingWidget();
+    sendLog("INFO", "DOM_RESTORE", `Restored ${restoredCount} items (text nodes & attributes) to original`, { restoredCount });
     return restoredCount;
+  }
+
+  let lastLangPair = null;
+
+  /**
+   * Refreshes translation for the current page: re-scans visible elements or re-translates if language changed.
+   */
+  async function refreshTranslation() {
+    if (isTranslating) return;
+
+    initFloatingWidget();
+    const settings = await getSettings();
+    const currentPair = `${settings.sourceLang || "zh"}->${settings.targetLang || "ru"}`;
+
+    if (lastLangPair && lastLangPair !== currentPair && isTranslated) {
+      restoreOriginal();
+      await translatePage();
+      return;
+    }
+
+    lastLangPair = currentPair;
+    isTranslating = true;
+    updateWidgetUI("translating", { current: 0, total: 1 });
+
+    try {
+      injectLayoutProtectionStyles();
+      const textItems = collectChineseTextNodes(document.body);
+      const attrItems = collectChineseAttributes(document.body);
+      const items = [...textItems, ...attrItems];
+
+      const visibleItems = [];
+      const offscreenItems = [];
+      for (const item of items) {
+        const targetEl = item.type === "attr" ? item.el : item.node?.parentElement;
+        if (!targetEl || !targetEl.isConnected) continue;
+        if (isElementInViewport(targetEl)) {
+          visibleItems.push(item);
+        } else {
+          offscreenItems.push(item);
+        }
+      }
+
+      if (visibleItems.length > 0) {
+        await translateItemsList(visibleItems, settings, (current, total) => {
+          updateWidgetUI("translating", { current, total });
+        });
+      }
+
+      if (offscreenItems.length > 0) {
+        observeOffscreenNodes(offscreenItems, settings);
+      }
+
+      isTranslated = true;
+      try {
+        sessionStorage.setItem("local_ai_translator_active", "true");
+      } catch (e) {}
+      startObservingDynamicContent(settings);
+      startObservingSpaNavigation(settings);
+      updateWidgetUI("refreshed");
+    } catch (err) {
+      console.error("[LocalAI Translator] Refresh translation error:", err);
+      updateWidgetUI("error", { error: err.message });
+    } finally {
+      isTranslating = false;
+    }
   }
 
   /**
@@ -933,11 +1007,14 @@
     if (isTranslating) return;
 
     if (isTranslated) {
-      restoreOriginal();
+      await refreshTranslation();
       return;
     }
 
     const settings = await getSettings();
+    lastLangPair = `${settings.sourceLang || "zh"}->${settings.targetLang || "ru"}`;
+    initFloatingWidget();
+
     const textItems = collectChineseTextNodes(document.body);
     const attrItems = collectChineseAttributes(document.body);
     const items = [...textItems, ...attrItems];
@@ -1074,20 +1151,16 @@
           to { opacity: 1; transform: scale(1.1); }
         }
       </style>
-      <div id="btn" class="badge" title="Local AI Web Translator">
+      <div id="btn" class="badge" title="Нажмите, чтобы обновить перевод страницы">
         <span class="dot"></span>
-        <span id="label">${initialPair}</span>
+        <span id="label">${initialPair} ⟳</span>
       </div>
     `;
 
     const btn = shadowRoot.getElementById("btn");
     btn.addEventListener("click", () => {
       if (isTranslating) return;
-      if (isTranslated) {
-        restoreOriginal();
-      } else {
-        translatePage();
-      }
+      refreshTranslation();
     });
 
     document.documentElement.appendChild(widgetContainer);
@@ -1101,29 +1174,39 @@
 
     btn.className = "badge";
     const pair = getPairLabel();
-    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
 
     if (state === "translating") {
       btn.classList.add("busy");
-      label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
-    } else if (state === "done") {
+      label.textContent = `Обновление ${data.current || 0}/${data.total || 0}...`;
+    } else if (state === "done" || state === "idle") {
       btn.classList.add("active");
-      label.textContent = `Оригинал (${src})`;
+      label.textContent = `${pair} ⟳`;
+      btn.title = "Нажмите, чтобы обновить перевод страницы";
+    } else if (state === "refreshed") {
+      btn.classList.add("active");
+      label.textContent = "✓ Обновлено";
+      btn.title = "Перевод успешно обновлен. Нажмите для повторного обновления.";
+      setTimeout(() => {
+        if (btn && label && isTranslated) {
+          label.textContent = `${pair} ⟳`;
+          btn.title = "Нажмите, чтобы обновить перевод страницы";
+        }
+      }, 1800);
     } else if (state === "no_text") {
       label.textContent = "Нет текста";
       setTimeout(() => {
-        label.textContent = pair;
+        label.textContent = `${pair} ⟳`;
       }, 2000);
     } else if (state === "error") {
       btn.classList.add("error");
       label.textContent = "Ошибка API";
       btn.title = data.error || "Ошибка подключения";
       setTimeout(() => {
-        btn.className = "badge";
-        label.textContent = pair;
+        btn.className = "badge active";
+        label.textContent = `${pair} ⟳`;
       }, 4000);
     } else {
-      label.textContent = pair;
+      label.textContent = `${pair} ⟳`;
     }
   }
 
@@ -1152,7 +1235,6 @@
   });
 
   function checkAutoResume() {
-    initFloatingWidget();
     initGlobalPortalCloser();
     try {
       if (sessionStorage.getItem("local_ai_translator_active") === "true") {
