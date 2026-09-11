@@ -19,3 +19,11 @@ desktop.ini
 
 # Build artifacts
 dist/
+
+# Tests & test fixtures
+test_*.js
+test_*.html
+test/
+tests/
+*.test.js
+*.spec.js

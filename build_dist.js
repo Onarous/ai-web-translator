@@ -39,6 +39,7 @@ const FILES_TO_COPY = [
   "config.js",
   "i18n.js",
   "README.md",
+  "README.ru.md",
   "LICENSE"
 ];
 
