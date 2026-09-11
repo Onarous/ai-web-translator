@@ -24,6 +24,37 @@ By strictly updating `TextNode.nodeValue` and live DOM attributes, it translates
 
 ---
 
+## 📥 Installation
+
+### Option 1: Windows 1-Click Installer (Recommended)
+
+1. Download or clone this repository and double-click **`install.bat`**.
+2. Choose from the interactive menu:
+   - **`[1] Copy extension path to clipboard (without opening browser)`**: Prepares files and copies the path `%LOCALAPPDATA%\AI-Translator\extension` directly to your clipboard for quick `Ctrl + V` pasting in the browser folder dialog.
+   - **`[2] Install to browser`**: Prepares files, opens the extension folder in File Explorer, and displays step-by-step instructions with direct links (`chrome://extensions`, `edge://extensions`).
+   - **`[3] Launch browser with extension`**: Starts your browser with the `--load-extension` flag for immediate testing.
+   - **`[4] Build release ZIP package`**: Compiles a clean production archive in `dist/AI-Translator-v1.0.0.zip`.
+   - **`[5] Remove extension from AppData`**: Removes installed files from the AppData directory.
+
+### Option 2: Manual Installation (All Operating Systems)
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Onarous/ai-web-translator.git
+   ```
+2. **Open the extensions page** in your Chromium-based browser:
+   - Google Chrome: `chrome://extensions/`
+   - Microsoft Edge: `edge://extensions/`
+   - Brave: `brave://extensions/`
+   - Yandex Browser: `browser://extensions/`
+3. Enable **Developer mode** toggle in the top-right corner.
+4. Click **Load unpacked** and select the project directory (or the `dist/extension` folder).
+
+### Uninstallation
+- Run **`uninstall.bat`** to cleanly remove all files from `AppData`, then click **Remove** next to the extension in your browser's extensions page.
+
+---
+
 ## ⚡ Highlights & Comparison
 
 | Feature | Standard Translators (Google, DeepL) | AI Web Translator |
@@ -141,37 +172,6 @@ Viewport Check (isElementInViewport)
 | **Ollama (Local)** | `http://localhost:11434/v1/chat/completions` | *Leave empty* | `qwen2.5:latest` |
 | **LM Studio (Local)** | `http://localhost:1234/v1/chat/completions` | *Leave empty* | `model-identifier` |
 | **Custom Proxy** | `http://localhost:8045/v1/chat/completions` | *Optional* | Custom model name |
-
----
-
-## 📥 Installation
-
-### Option 1: Windows 1-Click Installer (Recommended)
-
-1. Download or clone this repository and double-click **`install.bat`**.
-2. Choose from the interactive menu:
-   - **`[1] Copy extension path to clipboard (without opening browser)`**: Prepares files and copies the path `%LOCALAPPDATA%\AI-Translator\extension` directly to your clipboard for quick `Ctrl + V` pasting in the browser folder dialog.
-   - **`[2] Install to browser`**: Prepares files, opens the extension folder in File Explorer, and displays step-by-step instructions with direct links (`chrome://extensions`, `edge://extensions`).
-   - **`[3] Launch browser with extension`**: Starts your browser with the `--load-extension` flag for immediate testing.
-   - **`[4] Build release ZIP package`**: Compiles a clean production archive in `dist/AI-Translator-v1.0.0.zip`.
-   - **`[5] Remove extension from AppData`**: Removes installed files from the AppData directory.
-
-### Option 2: Manual Installation (All Operating Systems)
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Onarous/ai-web-translator.git
-   ```
-2. **Open the extensions page** in your Chromium-based browser:
-   - Google Chrome: `chrome://extensions/`
-   - Microsoft Edge: `edge://extensions/`
-   - Brave: `brave://extensions/`
-   - Yandex Browser: `browser://extensions/`
-3. Enable **Developer mode** toggle in the top-right corner.
-4. Click **Load unpacked** and select the project directory (or the `dist/extension` folder).
-
-### Uninstallation
-- Run **`uninstall.bat`** to cleanly remove all files from `AppData`, then click **Remove** next to the extension in your browser's extensions page.
 
 ---
 
