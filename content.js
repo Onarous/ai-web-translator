@@ -1099,48 +1099,89 @@
     widgetContainer.style.right = "16px";
     widgetContainer.style.zIndex = "2147483647";
 
-    const initialPair = getPairLabel();
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
     shadowRoot = widgetContainer.attachShadow({ mode: "closed" });
     shadowRoot.innerHTML = `
       <style>
-        .badge {
+        .badge-container {
           display: inline-flex;
-          align-items: center;
-          gap: 6px;
+          align-items: stretch;
           background: #1e1e24;
           color: #f4f4f5;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           font-size: 13px;
           font-weight: 500;
-          padding: 7px 12px;
           border-radius: 20px;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.28);
           user-select: none;
           transition: all 0.2s ease;
-          border: 1px solid rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.14);
+          overflow: hidden;
         }
-        .badge:hover {
-          background: #2b2b36;
+        .badge-container:hover {
+          box-shadow: 0 6px 18px rgba(0,0,0,0.38);
           transform: translateY(-1px);
         }
-        .badge.busy {
+        .badge-container.busy {
           cursor: wait;
-          opacity: 0.85;
+          opacity: 0.9;
         }
-        .badge.active {
-          background: #0284c7;
+        .badge-container.active {
           border-color: #38bdf8;
         }
-        .badge.error {
-          background: #b91c1c;
+        .badge-container.error {
           border-color: #f87171;
+        }
+        .badge-main {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 12px;
+          cursor: pointer;
+          background: transparent;
+          transition: background 0.15s ease;
+        }
+        .badge-main:hover {
+          background: rgba(255,255,255,0.08);
+        }
+        .badge-divider {
+          width: 1px;
+          background: rgba(255,255,255,0.18);
+          align-self: stretch;
+        }
+        .badge-refresh {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 7px 11px;
+          cursor: pointer;
+          background: transparent;
+          font-size: 15px;
+          line-height: 1;
+          color: #38bdf8;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .badge-refresh:hover {
+          background: rgba(56, 189, 248, 0.18);
+          color: #7dd3fc;
+        }
+        .refresh-icon {
+          display: inline-block;
+          transition: transform 0.25s ease;
+        }
+        .badge-refresh.spinning .refresh-icon {
+          animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         .dot {
           width: 8px;
           height: 8px;
           border-radius: 50%;
           background: #10b981;
+          flex-shrink: 0;
         }
         .busy .dot {
           background: #f59e0b;
@@ -1151,14 +1192,28 @@
           to { opacity: 1; transform: scale(1.1); }
         }
       </style>
-      <div id="btn" class="badge" title="Нажмите, чтобы обновить перевод страницы">
-        <span class="dot"></span>
-        <span id="label">${initialPair} ⟳</span>
+      <div id="badgeContainer" class="badge-container active">
+        <div id="restoreBtn" class="badge-main" title="Вернуть оригинальный текст страницы">
+          <span class="dot"></span>
+          <span id="label">Оригинал (${src})</span>
+        </div>
+        <div class="badge-divider"></div>
+        <div id="refreshBtn" class="badge-refresh" title="Обновить перевод страницы">
+          <span id="refreshIcon" class="refresh-icon">⟳</span>
+        </div>
       </div>
     `;
 
-    const btn = shadowRoot.getElementById("btn");
-    btn.addEventListener("click", () => {
+    const restoreBtn = shadowRoot.getElementById("restoreBtn");
+    const refreshBtn = shadowRoot.getElementById("refreshBtn");
+
+    restoreBtn.addEventListener("click", () => {
+      if (isTranslating) return;
+      restoreOriginal();
+    });
+
+    refreshBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (isTranslating) return;
       refreshTranslation();
     });
@@ -1168,45 +1223,49 @@
 
   function updateWidgetUI(state, data = {}) {
     if (!shadowRoot) return;
-    const btn = shadowRoot.getElementById("btn");
+    const badgeContainer = shadowRoot.getElementById("badgeContainer");
+    const restoreBtn = shadowRoot.getElementById("restoreBtn");
     const label = shadowRoot.getElementById("label");
-    if (!btn || !label) return;
+    const refreshBtn = shadowRoot.getElementById("refreshBtn");
+    if (!badgeContainer || !label) return;
 
-    btn.className = "badge";
-    const pair = getPairLabel();
+    badgeContainer.className = "badge-container";
+    if (refreshBtn) refreshBtn.classList.remove("spinning");
+    const src = ((cachedSettings && cachedSettings.sourceLang) || "zh").toUpperCase();
 
     if (state === "translating") {
-      btn.classList.add("busy");
-      label.textContent = `Обновление ${data.current || 0}/${data.total || 0}...`;
+      badgeContainer.classList.add("busy");
+      if (refreshBtn) refreshBtn.classList.add("spinning");
+      label.textContent = `Перевод ${data.current || 0}/${data.total || 0}...`;
     } else if (state === "done" || state === "idle") {
-      btn.classList.add("active");
-      label.textContent = `${pair} ⟳`;
-      btn.title = "Нажмите, чтобы обновить перевод страницы";
+      badgeContainer.classList.add("active");
+      label.textContent = `Оригинал (${src})`;
+      if (restoreBtn) restoreBtn.title = "Вернуть оригинальный текст страницы";
     } else if (state === "refreshed") {
-      btn.classList.add("active");
+      badgeContainer.classList.add("active");
       label.textContent = "✓ Обновлено";
-      btn.title = "Перевод успешно обновлен. Нажмите для повторного обновления.";
       setTimeout(() => {
-        if (btn && label && isTranslated) {
-          label.textContent = `${pair} ⟳`;
-          btn.title = "Нажмите, чтобы обновить перевод страницы";
+        if (label && isTranslated) {
+          label.textContent = `Оригинал (${src})`;
         }
-      }, 1800);
+      }, 1500);
     } else if (state === "no_text") {
       label.textContent = "Нет текста";
       setTimeout(() => {
-        label.textContent = `${pair} ⟳`;
+        if (label) {
+          label.textContent = `Оригинал (${src})`;
+        }
       }, 2000);
     } else if (state === "error") {
-      btn.classList.add("error");
+      badgeContainer.classList.add("error");
       label.textContent = "Ошибка API";
-      btn.title = data.error || "Ошибка подключения";
+      if (restoreBtn) restoreBtn.title = data.error || "Ошибка подключения";
       setTimeout(() => {
-        btn.className = "badge active";
-        label.textContent = `${pair} ⟳`;
+        badgeContainer.className = "badge-container active";
+        label.textContent = `Оригинал (${src})`;
       }, 4000);
     } else {
-      label.textContent = `${pair} ⟳`;
+      label.textContent = `Оригинал (${src})`;
     }
   }
 
