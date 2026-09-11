@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (presetGeminiBtn) {
     presetGeminiBtn.addEventListener("click", () => {
       apiUrlInput.value = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-      modelInput.value = "gemini-2.5-flash";
+      modelInput.value = "gemini-2.0-flash";
       setStatus("Выбран пресет Google Gemini Cloud", "active");
       setTimeout(() => setStatus("Готов к переводу"), 1500);
     });
@@ -108,8 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
   testApiBtn.addEventListener("click", () => {
     const url = apiUrlInput.value.trim() || DEFAULTS.apiUrl;
     const key = apiKeyInput.value.trim() || DEFAULTS.apiKey;
+    const model = modelInput.value.trim() || DEFAULTS.model;
     setStatus("Проверка связи с API...");
-    chrome.runtime.sendMessage({ type: "CHECK_CONNECTION", apiUrl: url, apiKey: key }, (res) => {
+    chrome.runtime.sendMessage({ type: "CHECK_CONNECTION", apiUrl: url, apiKey: key, model }, (res) => {
       if (chrome.runtime.lastError) {
         setStatus("Ошибка фонового сервиса", "error");
         return;

@@ -331,15 +331,62 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "CHECK_CONNECTION") {
     const endpoint = message.apiUrl || DEFAULT_API_URL;
     const key = message.apiKey !== undefined ? message.apiKey : DEFAULT_API_KEY;
-    const headers = {};
+    const targetModel = message.model || DEFAULT_MODEL;
+    const headers = { "Content-Type": "application/json" };
     if (key) {
       headers["Authorization"] = `Bearer ${key}`;
     }
     writeLog("INFO", "API", `Checking connection to ${endpoint}`);
+
+    if (endpoint.includes("generativelanguage.googleapis.com")) {
+      fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          model: targetModel,
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 1
+        })
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            writeLog("INFO", "API", `Gemini connection successful: HTTP ${res.status}`);
+            sendResponse({ ok: true, status: res.status });
+          } else {
+            const errData = await res.json().catch(() => null);
+            const errMsg = errData?.[0]?.error?.message || errData?.error?.message || `HTTP ${res.status}`;
+            writeLog("WARN", "API", `Gemini connection failed: ${errMsg}`);
+            sendResponse({ ok: false, error: errMsg, status: res.status });
+          }
+        })
+        .catch((err) => {
+          writeLog("WARN", "API", `Connection check failed: ${err.message}`);
+          sendResponse({ ok: false, error: err.message });
+        });
+      return true;
+    }
+
     fetch(endpoint.replace(/\/chat\/completions\/?$/, "/models"), { method: "GET", headers })
       .then((res) => {
-        writeLog("INFO", "API", `Connection check successful: HTTP ${res.status}`);
-        sendResponse({ ok: res.ok, status: res.status });
+        if (res.ok) {
+          writeLog("INFO", "API", `Connection check successful: HTTP ${res.status}`);
+          sendResponse({ ok: true, status: res.status });
+        } else {
+          fetch(endpoint, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ model: targetModel, messages: [{ role: "user", content: "ping" }], max_tokens: 1 })
+          })
+            .then(async (r2) => {
+              if (r2.ok) {
+                sendResponse({ ok: true, status: r2.status });
+              } else {
+                const errText = await r2.text().catch(() => "");
+                sendResponse({ ok: false, error: `HTTP ${r2.status}: ${errText.slice(0, 120)}` });
+              }
+            })
+            .catch((e2) => sendResponse({ ok: false, error: e2.message }));
+        }
       })
       .catch((err) => {
         writeLog("WARN", "API", `Connection check failed: ${err.message}`);
